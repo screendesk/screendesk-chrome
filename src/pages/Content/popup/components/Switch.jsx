@@ -157,9 +157,6 @@ const Switch = (props) => {
               </div>
             </div>
           )}
-          {props.experimental && (
-            <span className="ExperimentalLabel">Experimental</span>
-          )}
         </label>
         {props.value ? (
           <S.Root
@@ -219,13 +216,6 @@ const Switch = (props) => {
                     hideUIAlerts: false,
                     toolbarHover: true,
                   });
-                }
-              } else if (props.name === "pushToTalk") {
-                if (!checked) {
-                  setContentState((prevContentState) => ({
-                    ...prevContentState,
-                    micActive: true,
-                  }));
                 }
               }
             }}

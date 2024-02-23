@@ -20,7 +20,6 @@ import root from "react-shadow";
 import styles from "!raw-loader!./styles/app.css";
 
 // Utils
-import ZoomContainer from "./utils/ZoomContainer";
 import BlurTool from "./utils/BlurTool";
 import CursorModes from "./utils/CursorModes";
 
@@ -67,7 +66,7 @@ const Wrapper = () => {
 
     permissionsRef.current.contentWindow.postMessage(
       {
-        type: "screenity-get-permissions",
+        type: "screendesk-get-permissions",
       },
       "*"
     );
@@ -109,7 +108,6 @@ const Wrapper = () => {
         ></iframe>
       )}
 
-      {contentState.zoomEnabled && <ZoomContainer />}
       <BlurTool />
       {contentState.showExtension || contentState.recording ? (
         <div>
@@ -161,7 +159,7 @@ const Wrapper = () => {
           <CursorModes />
           <root.div
             className="root-container"
-            id="screenity-root-container"
+            id="screendesk-root-container"
             style={{
               // all: "initial",
               display: "block",

@@ -52,6 +52,40 @@ const PopupContainer = (props) => {
   const pillRef = useRef(null);
   const [URL, setURL] = useState("https://docs.screendesk.io/");
 
+  const checkUserAuthentication = () => {
+    fetch('http://localhost:3001/auth/ping', {
+      credentials: 'include' // Important for including cookies in the request
+    })
+    .then(response => {
+      if(response.ok) {
+        console.log('User is authenticated');
+        // User is logged in, proceed accordingly
+      } else {
+        console.log('User is not authenticated');
+        // User is not logged in, handle accordingly
+      
+        // Send a message to the background script to open a new tab
+        chrome.runtime.sendMessage({action: "openSignInPage"});
+        window.close();        
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  };
+
+  useEffect(() => {
+    const handleMessage = (request, sender, sendResponse) => {
+      if (request.action === "popupOpened") {
+        checkUserAuthentication();
+      }
+    };
+  
+    chrome.runtime.onMessage.addListener(handleMessage);
+  
+    checkUserAuthentication(); // Initial check on mount
+  
+    return () => chrome.runtime.onMessage.removeListener(handleMessage);
+  }, []);
+
   useEffect(() => {
     // Check chrome storage
     chrome.storage.local.get(["updatingFromOld"], function (result) {
@@ -65,7 +99,7 @@ const PopupContainer = (props) => {
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (!locale.includes("en")) {
       setURL(
-        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://help.screenity.io/`
+        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://help.screendesk.io/`
       );
     }
   }, []);

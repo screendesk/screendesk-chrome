@@ -4,7 +4,7 @@ import localforage from "localforage";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "screendesk",
   version: 1,
 });
 
@@ -57,7 +57,7 @@ const Backup = () => {
   const initLocalDirectory = async (directoryHandle, prompt = true) => {
     const permissions = await verifyFilePermissions(directoryHandle);
     if (permissions) {
-      let videoTitle = `Screenity video - ${new Date().toLocaleString("en-US", {
+      let videoTitle = `Screendesk video - ${new Date().toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -96,7 +96,7 @@ const Backup = () => {
       localSaving(prompt);
     } else {
       alert(
-        "Failed to set up local backup. Reach out to us at support@screenity.io for more help. You can still record your screen."
+        "Failed to set up local backup. Reach out to us at support@screendesk.io for more help. You can still record your screen."
       );
       chrome.storage.local.set({ backup: false });
       chrome.runtime.sendMessage({
@@ -142,14 +142,14 @@ const Backup = () => {
 
     let directoryHandle = directoryPicker;
 
-    // Check if the selected directory is the "Screenity recordings" folder
-    if (directoryPicker.name === "Screenity Recordings") {
+    // Check if the selected directory is the "Screendesk recordings" folder
+    if (directoryPicker.name === "Screendesk Recordings") {
       // Use the selected directory directly
       directoryHandle = directoryPicker;
     } else {
-      // If not, create the "Screenity recordings" folder within it
+      // If not, create the "Screendesk recordings" folder within it
       directoryHandle = await directoryPicker.getDirectoryHandle(
-        "Screenity Recordings",
+        "Screendesk Recordings",
         { create: true }
       );
     }
@@ -196,7 +196,7 @@ const Backup = () => {
       });
     } else {
       alert(
-        "Your browser doesn't support local backups. Reach out to us at support@screenity.io for more help. You can still record your screen."
+        "Your browser doesn't support local backups. Reach out to us at support@screendesk.io for more help. You can still record your screen."
       );
       chrome.storage.local.set({ backup: false });
       chrome.runtime.sendMessage({
@@ -369,7 +369,7 @@ const Backup = () => {
               <br />
               {chrome.i18n.getMessage("backupsDescription2")}{" "}
               <a
-                href="https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-backups-how-can-i-set-them-up/waYArvSwybZkJKKDdMXw1o"
+                href="https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-backups-how-can-i-set-them-up/waYArvSwybZkJKKDdMXw1o"
                 target="_blank"
               >
                 {chrome.i18n.getMessage("learnMoreDot")}
@@ -436,7 +436,7 @@ const Backup = () => {
             <div className="subtitle">
               {chrome.i18n.getMessage("backupsConfirmDescription")}{" "}
               <a
-                href="https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-backups-how-can-i-set-them-up/waYArvSwybZkJKKDdMXw1o"
+                href="https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-backups-how-can-i-set-them-up/waYArvSwybZkJKKDdMXw1o"
                 target="_blank"
               >
                 {chrome.i18n.getMessage("learnMoreDot")}

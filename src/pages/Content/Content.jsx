@@ -8,12 +8,12 @@ import ContentState from "./context/ContentState";
 
 const Content = () => {
   return (
-    <div className="screenity-shadow-dom">
+    <div className="screendesk-shadow-dom">
       <ContentState>
         <Wrapper />
       </ContentState>
       <style type="text/css">{`
-			#screenity-ui, #screenity-ui div {
+			#screendesk-ui, #screendesk-ui div {
 				background-color: unset;
 				padding: unset;
 				width: unset;
@@ -22,21 +22,21 @@ const Content = () => {
 				margin: unset;
 				border-radius: unset;
 			}
-			.screenity-outline {
+			.screendesk-outline {
 				position: absolute;
 				z-index: 99999999999;
-				border: 2px solid #3080F8;
+				border: 2px solid #e11d48;
 				outline-offset: -2px;
 				pointer-events: none;
 				border-radius: 5px!important;
 			}
-		.screenity-blur {
+		.screendesk-blur {
 			filter: blur(10px)!important;
 		}
-			.screenity-shadow-dom * {
+			.screendesk-shadow-dom * {
 				transition: unset;
 			}
-			.screenity-shadow-dom .TooltipContent {
+			.screendesk-shadow-dom .TooltipContent {
   border-radius: 30px!important;
 	background-color: #29292F!important;
   padding: 10px 15px!important;
@@ -56,28 +56,28 @@ const Content = () => {
   will-change: transform, opacity;
 }
 
-.screenity-shadow-dom .hide-tooltip {
+.screendesk-shadow-dom .hide-tooltip {
 	display: none!important;
 }
 
-.screenity-shadow-dom .tooltip-tall {
+.screendesk-shadow-dom .tooltip-tall {
 	margin-bottom: 20px;
 }
 
-.screenity-shadow-dom .tooltip-small {
+.screendesk-shadow-dom .tooltip-small {
 	margin-bottom: 5px;
 }
 
-.screenity-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='top'] {
+.screendesk-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='top'] {
 	animation-name: slideDownAndFade;
 }
-.screenity-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='right'] {
+.screendesk-shadow-dom .TooltipContent[data-state='delayed-open'][data-side='right'] {
   animation-name: slideLeftAndFade;
 }
-.screenity-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='bottom'] {
+.screendesk-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='bottom'] {
   animation-name: slideUpAndFade;
 }
-.screenity-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='left'] {
+.screendesk-shadow-dom.TooltipContent[data-state='delayed-open'][data-side='left'] {
   animation-name: slideRightAndFade;
 }
 
@@ -127,21 +127,21 @@ const Content = () => {
 
 [data-radix-popper-content-wrapper] { z-index: 999999999999!important; } 
 
-.screenity-shadow-dom .CanvasContainer {
+.screendesk-shadow-dom .CanvasContainer {
 	position: fixed;
 	pointer-events: all!important;
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999!important;
 }
-.screenity-shadow-dom .canvas {
+.screendesk-shadow-dom .canvas {
 	position: fixed;
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999!important;
 	background: transparent!important;
 }
-.screenity-shadow-dom .canvas-container {
+.screendesk-shadow-dom .canvas-container {
 	top: 0px!important;
 	left: 0px!important;
 	z-index: 99999999999;
@@ -149,7 +149,7 @@ const Content = () => {
 	background: transparent!important;
 }
 
-.ScreenityDropdownMenuContent {
+.ScreendeskDropdownMenuContent {
   min-width: 200px;
   background-color: white;
   margin-top: 4px;
@@ -166,31 +166,31 @@ const Content = () => {
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
-.ScreenityDropdownMenuContent[data-side="top"] {
+.ScreendeskDropdownMenuContent[data-side="top"] {
   animation-name: slideDownAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="right"] {
+.ScreendeskDropdownMenuContent[data-side="right"] {
   animation-name: slideLeftAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="bottom"] {
+.ScreendeskDropdownMenuContent[data-side="bottom"] {
   animation-name: slideUpAndFade;
 }
-.ScreenityDropdownMenuContent[data-side="left"] {
+.ScreendeskDropdownMenuContent[data-side="left"] {
   animation-name: slideRightAndFade;
 }
-.ScreenityItemIndicator {
+.ScreendeskItemIndicator {
   position: absolute;
   right: 12px; 
   width: 18px;
   height: 18px;
-  background: #3080F8;
+  background: #e11d48;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.ScreenityDropdownMenuItem,
-.ScreenityDropdownMenuRadioItem {
+.ScreendeskDropdownMenuItem,
+.ScreendeskDropdownMenuRadioItem {
   font-size: 14px;
   line-height: 1;
   display: flex;
@@ -203,11 +203,11 @@ const Content = () => {
   user-select: none;
   outline: none;
 }
-.ScreenityDropdownMenuItem:hover {
+.ScreendeskDropdownMenuItem:hover {
     background-color: #F6F7FB !important;
     cursor: pointer;
 }
-.ScreenityDropdownMenuItem[data-disabled] {
+.ScreendeskDropdownMenuItem[data-disabled] {
   color: #6E7684; !important;
   cursor: not-allowed;
   background-color: #F6F7FB !important;

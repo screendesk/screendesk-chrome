@@ -3,7 +3,7 @@ import localforage from "localforage";
 
 localforage.config({
   driver: localforage.INDEXEDDB, // or choose another driver
-  name: "screenity", // optional
+  name: "screendesk", // optional
   version: 1, // optional
 });
 

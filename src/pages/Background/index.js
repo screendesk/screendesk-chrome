@@ -12,7 +12,7 @@ import localforage from "localforage";
 
 localforage.config({
   driver: localforage.INDEXEDDB,
-  name: "screenity",
+  name: "screendesk",
   version: 1,
 });
 
@@ -1691,9 +1691,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     handleRecordingComplete();
   } else if (request.type === "check-recording") {
     checkRecording();
-  } else if (request.type === "review-screenity") {
+  } else if (request.type === "review-screendesk") {
     createTab(
-      "https://chrome.google.com/webstore/detail/screenity-screen-recorder/kbbdabhdfibnancpjfhlkhafgdilcnji/reviews",
+      "https://chrome.google.com/webstore/detail/screendesk-screen-recorder/kbbdabhdfibnancpjfhlkhafgdilcnji/reviews",
       false,
       true
     );
@@ -1701,19 +1701,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     createTab("https://alyssax.substack.com/", false, true);
   } else if (request.type === "open-processing-info") {
     createTab(
-      "https://help.screenity.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/why-is-there-a-5-minute-limit-for-editing/ddy4e4TpbnrFJ8VoRT37tQ",
+      "https://help.screendesk.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/why-is-there-a-5-minute-limit-for-editing/ddy4e4TpbnrFJ8VoRT37tQ",
       true,
       true
     );
   } else if (request.type === "upgrade-info") {
     createTab(
-      "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9",
+      "https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screendesk/6kdB6qru6naVD8ZLFvX3m9",
       true,
       true
     );
   } else if (request.type === "trim-info") {
     createTab(
-      "https://help.screenity.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/how-to-cut-trim-or-mute-parts-of-your-video/svNbM7YHYY717MuSWXrKXH",
+      "https://help.screendesk.io/editing-and-exporting/dJRFpGq56JFKC7k8zEvsqb/how-to-cut-trim-or-mute-parts-of-your-video/svNbM7YHYY717MuSWXrKXH",
       true,
       true
     );
@@ -1721,7 +1721,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     createTab("https://tally.so/r/npojNV", true, true);
   } else if (request.type === "chrome-update-info") {
     createTab(
-      "https://help.screenity.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screenity/6kdB6qru6naVD8ZLFvX3m9",
+      "https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screendesk/6kdB6qru6naVD8ZLFvX3m9",
       true,
       true
     );
@@ -1736,15 +1736,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "sign-out-drive") {
     handleSignOutDrive();
   } else if (request.type === "open-help") {
-    createTab("https://help.screenity.io/", true, true);
+    createTab("https://help.screendesk.io/", true, true);
   } else if (request.type === "memory-limit-help") {
     createTab(
-      "https://help.screenity.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/what-does-%E2%80%9Cmemory-limit-reached%E2%80%9D-mean-when-recording/8WkwHbt3puuXunYqQnyPcb",
+      "https://help.screendesk.io/troubleshooting/9Jy5RGjNrBB42hqUdREQ7W/what-does-%E2%80%9Cmemory-limit-reached%E2%80%9D-mean-when-recording/8WkwHbt3puuXunYqQnyPcb",
       true,
       true
     );
   } else if (request.type === "open-home") {
-    createTab("https://screenity.io/", false, true);
+    createTab("https://screendesk.io/", false, true);
   } else if (request.type === "report-bug") {
     createTab(
       "https://tally.so/r/3ElpXq?version=" +
@@ -1827,3 +1827,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // self.addEventListener("message", (event) => {
 //   handleMessage(event.data);
 // });
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, {action: "popupOpened"});
+  });
+});
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "openSignInPage") {
+    chrome.tabs.create({url: 'http://localhost:3001/users/sign_in'});
+  }
+});

@@ -29,11 +29,11 @@ const BlurToolbar = (props) => {
           type="button"
           content={chrome.i18n.getMessage("clearBlurredElementsTooltip")}
           onClick={() => {
-            // Remove class screenity-blur from all elements
+            // Remove class screendesk-blur from all elements
             const blurredElements =
-              document.querySelectorAll(".screenity-blur");
+              document.querySelectorAll(".screendesk-blur");
             blurredElements.forEach((element) => {
-              element.classList.remove("screenity-blur");
+              element.classList.remove("screendesk-blur");
             });
           }}
         >

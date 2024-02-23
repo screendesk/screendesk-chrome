@@ -65,7 +65,7 @@ iframe {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border: 10px solid #3080F8;
+  border: 10px solid #e11d48;
   pointer-events: none;
   transform: scale(1.2);
   opacity: 0;
@@ -310,7 +310,7 @@ iframe {
 .ToolbarLink:focus-visible,
 .ToolbarButton:focus-visible {
   position: relative;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .ToolbarModeItemSingle {
@@ -367,7 +367,7 @@ iframe {
   background: rgba(56, 126, 247, 0.1);
 }
 .ToolbarModeItem[data-state=on] svg {
-  color: #3080F8;
+  color: #e11d48;
 }
 .ToolbarModeItem[data-state=on]::before {
   transform: translateY(0px) scale(1) !important;
@@ -397,7 +397,7 @@ iframe {
   margin-left: 0;
 }
 .ToolbarToggleItem[data-state=on] {
-  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #2BAEF8 23.13%, #3582F6 46.35%, #486DEF 74.48%, #7B9AEA 100%);
+  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #e11d48 23.13%, #fb7185 46.35%, #e11d48 74.48%, #f43f5e 100%);
   color: #FFF;
 }
 .ToolbarToggleItem[data-state=on] svg {
@@ -773,7 +773,7 @@ body {
 }
 
 .eye-active {
-  background-color: #3080F8 !important;
+  background-color: #e11d48 !important;
 }
 .eye-active svg {
   color: #FFF !important;
@@ -845,7 +845,7 @@ body {
 }
 .radial-menu-item-child:focus-visible {
   outline: none;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .radial-menu[data-state=open] .radial-menu-item-child {
@@ -1185,7 +1185,7 @@ body {
   display: block;
 }
 .stroke-width-item div[data-state=on] {
-  background: #3080F8 !important;
+  background: #e11d48 !important;
 }
 .stroke-width-item div[data-state=on] svg {
   color: #FFF !important;
@@ -1495,7 +1495,7 @@ body {
   margin-bottom: 8px;
 }
 .popup-warning .popup-warning-right {
-  color: #3080F8;
+  color: #e11d48;
   font-family: "Satoshi-Medium", sans-serif;
   width: 90px;
 }
@@ -1511,7 +1511,7 @@ body {
 }
 .popup-warning-left svg,
 .popup-warning-right svg {
-  color: #3080F8;
+  color: #e11d48;
 }
 
 .popup-warning-right {
@@ -1534,7 +1534,7 @@ body {
 .permission-button {
   background: rgba(48, 128, 248, 0.1);
   border-radius: 30px;
-  color: #3080F8;
+  color: #e11d48;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1555,7 +1555,7 @@ body {
   cursor: pointer;
 }
 .permission-button svg {
-  color: #3080F8;
+  color: #e11d48;
 }
 
 .HelpSection {
@@ -1600,7 +1600,7 @@ body {
 }
 
 .CollapsibleTrigger:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .CollapsibleLabel {
@@ -1703,7 +1703,7 @@ body {
   color: #FFF;
   text-align: center;
   border-radius: 30px;
-  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #2BAEF8 23.13%, #3582F6 46.35%, #486DEF 74.48%, #7B9AEA 100%);
+  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #e11d48 23.13%, #fb7185 46.35%, #e11d48 74.48%, #f43f5e 100%);
   padding: 8px 16px;
 }
 .ModalSoonButton:hover {
@@ -1756,7 +1756,7 @@ body {
 }
 .announcement-description a {
   text-decoration: none !important;
-  color: #3080F8 !important;
+  color: #e11d48 !important;
   cursor: pointer !important;
 }
 
@@ -1768,7 +1768,7 @@ body {
   width: 100%;
   height: 44px;
   border-radius: 30px;
-  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #2BAEF8 23.13%, #3582F6 46.35%, #486DEF 74.48%, #7B9AEA 100%);
+  background: radial-gradient(117.41% 117.78% at 35.44% 0%, #e11d48 23.13%, #fb7185 46.35%, #e11d48 74.48%, #f43f5e 100%);
   color: #FFF;
   font-family: "Satoshi-Medium", sans-serif;
   font-size: 14px;
@@ -1841,7 +1841,7 @@ body {
   right: 12px;
   width: 18px;
   height: 18px;
-  background: #3080F8;
+  background: #e11d48;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -2024,7 +2024,7 @@ button {
 }
 
 .SelectTrigger:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5) !important;
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1) !important;
 }
 
 .SelectTrigger[data-placeholder] {
@@ -2032,7 +2032,7 @@ button {
 }
 
 .SelectTrigger[data-state=open] {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .SelectValue {
@@ -2129,7 +2129,7 @@ button {
   right: 12px;
   width: 24px;
   height: 24px;
-  background: #3080F8;
+  background: #e11d48;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -2208,7 +2208,7 @@ input {
 
 .TabsTrigger:focus-visible {
   position: relative;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5) !important;
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1) !important;
 }
 
 /* Content of the Radix tabs */
@@ -2237,7 +2237,7 @@ input {
 }
 
 .TabsContent:focus-visible {
-  box-shadow: inset 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: inset 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .TabsContent[data-state=inactive] {
@@ -2368,7 +2368,7 @@ input {
   margin: auto;
   height: 2px;
   border-radius: 30px;
-  background: #3080F8;
+  background: #e11d48;
 }
 .recording-ui .TabsTrigger[data-state=active] > .TabsTriggerLabel {
   color: #29292F !important;
@@ -2455,7 +2455,7 @@ input {
   margin: auto;
   height: 2px;
   border-radius: 30px;
-  background: #3080F8;
+  background: #e11d48;
 }
 .video-ui .TabsTrigger[data-state=active] > .TabsTriggerLabel {
   color: #29292F !important;
@@ -2495,7 +2495,7 @@ input {
   margin-left: 8px;
 }
 .video-ui .TabsSort:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
   outline: none !important;
 }
 
@@ -2535,11 +2535,11 @@ button {
 }
 
 .SwitchRoot:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .SwitchRoot[data-state=checked] {
-  background-color: #3080F8;
+  background-color: #e11d48;
 }
 
 .SwitchRoot:hover {
@@ -2571,16 +2571,6 @@ button {
 }
 .Label:hover {
   text-overflow: clip;
-}
-
-.ExperimentalLabel {
-  color: #FFF;
-  font-size: 12px;
-  background-color: #3080F8;
-  border-radius: 15px;
-  padding: 2px 8px;
-  display: inline-block !important;
-  margin-left: 8px;
 }
 
 .labelDropdownWrap {
@@ -2710,7 +2700,7 @@ button {
 }
 
 .video-item-root:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
   outline: none !important;
 }
 
@@ -2739,7 +2729,7 @@ button {
   margin-right: 4px;
 }
 .video-item-right .copy-link:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
   outline: none !important;
 }
 .video-item-right .more-actions {
@@ -2753,7 +2743,7 @@ button {
   justify-content: center;
 }
 .video-item-right .more-actions:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
   outline: none !important;
 }
 
@@ -2798,7 +2788,7 @@ button {
 }
 
 .main-button:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5) !important;
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1) !important;
 }
 
 @property --x {
@@ -2814,7 +2804,7 @@ button {
 .recording-button {
   margin-top: 8px;
   filter: drop-shadow(0px 4px 20px rgba(86, 123, 218, 0.5));
-  background: radial-gradient(127.41% 127.78% at 35.44% 0%, #2BAEF8 23.13%, #3582F6 46.35%, #486DEF 74.48%, #7B9AEA 100%);
+	background:radial-gradient(117.41% 117.78% at 35.44% 0%, #e11d48 23.13%, #fb7185 46.35%, #e11d48 74.48%, #f43f5e 100%);
   animation: 0;
   animation: background-size 6s ease-in-out infinite;
   animation-play-state: paused;
@@ -2855,21 +2845,21 @@ button {
 }
 
 .recording-button:hover:before {
-  box-shadow: 0px 0px 0px 4px rgba(52, 138, 247, 0.25);
+  box-shadow: 0px 0px 0px 4px rgba(253, 164, 175, 1);
 }
 
 @keyframes pulse-animation {
   0% {
-    box-shadow: 0px 0px 0px 2px rgba(52, 138, 247, 0.25);
+    box-shadow: 0px 0px 0px 2px rgba(253, 164, 175, 1);
   }
   25% {
-    box-shadow: 0px 0px 0px 6px rgba(52, 138, 247, 0.25);
+    box-shadow: 0px 0px 0px 6px rgba(253, 164, 175, 1);
   }
   50% {
-    box-shadow: 0px 0px 0px 2px rgba(52, 138, 247, 0.25);
+    box-shadow: 0px 0px 0px 2px rgba(253, 164, 175, 1);
   }
   100% {
-    box-shadow: 0px 0px 0px 2px rgba(52, 138, 247, 0.25);
+    box-shadow: 0px 0px 0px 2px rgba(253, 164, 175, 1);
   }
 }
 @keyframes gradient-animation {
@@ -2963,7 +2953,7 @@ button {
   width: 46px;
   height: 46px;
   position: absolute;
-  border: 2px solid #3080F8;
+  border: 2px solid #e11d48;
   box-sizing: border-box;
 }
 .background-effect img {
@@ -2984,12 +2974,12 @@ button {
   width: 46px;
   height: 46px;
   position: absolute;
-  border: 2px solid #3080F8;
+  border: 2px solid #e11d48;
   opacity: 0.5;
   box-sizing: border-box;
 }
 .background-effect:focus-visible {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .region-dimensions {
@@ -3018,7 +3008,7 @@ button {
 }
 .region-input input:focus-visible {
   outline: none;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 .region-input span {
   color: #6E7684;
@@ -3059,7 +3049,7 @@ button {
 }
 .time-set-input input:focus-visible {
   outline: none;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 .time-set-input span {
   color: #6E7684;
@@ -3293,7 +3283,7 @@ button {
 
 .CameraToggleItem:focus-visible, .CameraToggleButton:focus-visible {
   position: relative;
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .CameraToggleGroup {
@@ -3532,7 +3522,7 @@ button {
   line-height: 1.5;
 }
 .AlertDialogDescription a {
-  color: #3080F8 !important;
+  color: #e11d48 !important;
   font-weight: 600 !important;
   text-decoration: none !important;
   display: inline-block;
@@ -3553,14 +3543,14 @@ button {
 
 .Button.blue {
   background-color: rgba(48, 128, 248, 0.1);
-  color: #3080F8;
+  color: #e11d48;
 }
 .Button.blue:hover {
   background-color: rgba(48, 128, 248, 0.15);
   cursor: pointer;
 }
 .Button.blue:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .Button.red {
@@ -3574,7 +3564,7 @@ button {
 }
 
 .Button.red:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 .Button.grey {
@@ -3588,7 +3578,7 @@ button {
 }
 
 .Button.grey:focus {
-  box-shadow: 0px 0px 0px 2px rgba(48, 128, 248, 0.5);
+  box-shadow: 0px 0px 0px 2px rgba(251, 113, 133, 1);
 }
 
 @keyframes overlayShow {
@@ -3840,28 +3830,28 @@ html {
   font-size: 16px;
 }
 
-.screenity-scrollbar::-webkit-scrollbar {
+.screendesk-scrollbar::-webkit-scrollbar {
   background-color: rgba(0, 0, 0, 0);
   width: 16px;
   height: 16px;
   z-index: 999999;
 }
 
-.screenity-scrollbar::-webkit-scrollbar-track {
+.screendesk-scrollbar::-webkit-scrollbar-track {
   background-color: rgba(0, 0, 0, 0);
 }
 
-.screenity-scrollbar::-webkit-scrollbar-thumb {
+.screendesk-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0);
   border-radius: 16px;
   border: 0px solid #fff;
 }
 
-.screenity-scrollbar::-webkit-scrollbar-button {
+.screendesk-scrollbar::-webkit-scrollbar-button {
   display: none;
 }
 
-.screenity-scrollbar:hover::-webkit-scrollbar-thumb {
+.screendesk-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #a0a0a5;
   border: 4px solid #fff;
 }

@@ -78,14 +78,6 @@ const Settings = () => {
               value="offscreenRecording"
             />
           )}
-        <Switch
-          label={
-            chrome.i18n.getMessage("zoomToPointPopup") + " (" + shortcut + ")"
-          }
-          name="zoomEnabled"
-          value="zoomEnabled"
-          experimental={true}
-        />
       </Collapsible.Content>
     </Collapsible.Root>
   );

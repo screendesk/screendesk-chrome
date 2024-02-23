@@ -23,9 +23,9 @@ const BlurTool = () => {
     if (!contentState.showExtension) {
       setShowOutline(false);
       // Remove blur from all elements
-      const elements = document.querySelectorAll(".screenity-blur");
+      const elements = document.querySelectorAll(".screendesk-blur");
       elements.forEach((element) => {
-        element.classList.remove("screenity-blur");
+        element.classList.remove("screendesk-blur");
       });
     }
   }, [contentState.showExtension]);
@@ -38,8 +38,8 @@ const BlurTool = () => {
       }
       const target = event.target;
       if (
-        !target.classList.contains("screenity-outline") &&
-        !target.closest("#screenity-ui #screenity-ui *")
+        !target.classList.contains("screendesk-outline") &&
+        !target.closest("#screendesk-ui #screendesk-ui *")
       ) {
         hoveredElementRef.current = target;
         setShowOutline(true);
@@ -60,7 +60,7 @@ const BlurTool = () => {
       }
 
       const target = event.target;
-      if (target.closest("#screenity-ui, #screenity-ui *")) {
+      if (target.closest("#screendesk-ui, #screendesk-ui *")) {
         return;
       }
 
@@ -75,13 +75,13 @@ const BlurTool = () => {
       }
 
       const target = event.target;
-      if (target.closest("#screenity-ui, #screenity-ui *")) {
+      if (target.closest("#screendesk-ui, #screendesk-ui *")) {
         return;
       }
 
       event.preventDefault();
       event.stopPropagation();
-      target.classList.toggle("screenity-blur");
+      target.classList.toggle("screendesk-blur");
     };
 
     const handleMouseUp = (event) => {
@@ -91,7 +91,7 @@ const BlurTool = () => {
       }
 
       const target = event.target;
-      if (target.closest("#screenity-ui, #screenity-ui *")) {
+      if (target.closest("#screendesk-ui, #screendesk-ui *")) {
         return;
       }
       event.preventDefault();
@@ -117,7 +117,7 @@ const BlurTool = () => {
     <div>
       {showOutline && (
         <div
-          className="screenity-outline"
+          className="screendesk-outline"
           style={{
             top:
               hoveredElementRef.current.getBoundingClientRect().top +

@@ -67,7 +67,7 @@ const Sandbox = () => {
 
     const elements = parentDiv.querySelectorAll("*");
     elements.forEach((element) => {
-      element.classList.add("screenity-scrollbar");
+      element.classList.add("screendesk-scrollbar");
     });
 
     const observer = new MutationObserver((mutationsList) => {
@@ -78,13 +78,13 @@ const Sandbox = () => {
 
           addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.add("screenity-scrollbar");
+              node.classList.add("screendesk-scrollbar");
             }
           });
 
           removedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
-              node.classList.remove("screenity-scrollbar");
+              node.classList.remove("screendesk-scrollbar");
             }
           });
         }
@@ -253,24 +253,24 @@ const Sandbox = () => {
 					}
 
 
-.screenity-scrollbar *::-webkit-scrollbar, .screenity-scrollbar::-webkit-scrollbar {
+.screendesk-scrollbar *::-webkit-scrollbar, .screendesk-scrollbar::-webkit-scrollbar {
   background-color: rgba(0,0,0,0);
   width: 16px;
   height: 16px;
   z-index: 999999;
 }
-.screenity-scrollbar *::-webkit-scrollbar-track, .screenity-scrollbar::-webkit-scrollbar-track {
+.screendesk-scrollbar *::-webkit-scrollbar-track, .screendesk-scrollbar::-webkit-scrollbar-track {
   background-color: rgba(0,0,0,0);
 }
-.screenity-scrollbar *::-webkit-scrollbar-thumb, .screenity-scrollbar::-webkit-scrollbar-thumb {
+.screendesk-scrollbar *::-webkit-scrollbar-thumb, .screendesk-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgba(0,0,0,0);
   border-radius:16px;
   border:0px solid #fff;
 }
-.screenity-scrollbar *::-webkit-scrollbar-button, .screenity-scrollbar::-webkit-scrollbar-button {
+.screendesk-scrollbar *::-webkit-scrollbar-button, .screendesk-scrollbar::-webkit-scrollbar-button {
   display:none;
 }
-.screenity-scrollbar *:hover::-webkit-scrollbar-thumb, .screenity-scrollbar:hover::-webkit-scrollbar-thumb {
+.screendesk-scrollbar *:hover::-webkit-scrollbar-thumb, .screendesk-scrollbar:hover::-webkit-scrollbar-thumb {
   background-color: #a0a0a5;
   border:4px solid #fff;
 }
@@ -284,7 +284,7 @@ const Sandbox = () => {
 	position: absolute!important;
 	top: 0px!important;
 	left: 0px!important;
-	background-color: #3080F8!important;
+	background-color: #e11d48!important;
 	color: #FFF!important;
 	font-family: "Satoshi-Medium"!important;
 	z-index: 99999999999!important;
