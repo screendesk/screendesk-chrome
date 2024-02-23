@@ -327,7 +327,7 @@ iframe {
   background: rgba(120, 192, 114, 0.1);
 }
 .ToolbarModeItemSingle[data-state=on] svg {
-  color: #78C072;
+  color: #e11d48;
 }
 .ToolbarModeItemSingle[data-state=on]::before {
   transform: translateY(0px) scale(1) !important;

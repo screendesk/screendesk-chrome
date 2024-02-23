@@ -70,7 +70,7 @@ const Setup = () => {
                 <span>
                   <img
                     src={chrome.runtime.getURL(
-                      "assets/helper/mini-screenity.png"
+                      "assets/helper/mini-screendesk.png"
                     )}
                   />
                 </span>
@@ -106,13 +106,6 @@ const Setup = () => {
 	padding: 0;
 	min-height: 100%;
 		background-color: #F6F7FB!important;
-		background: url('` +
-          chrome.runtime.getURL("assets/helper/pattern-svg.svg") +
-          `') repeat;
-		background-size: 62px 23.5px;
-		animation: moveBackground 138s linear infinite;
-		transform: rotate(0deg);
-				}
 
 				.setupInfo {
 					margin-top: 20px;

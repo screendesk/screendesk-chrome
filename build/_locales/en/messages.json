@@ -12,7 +12,7 @@
     "description": "Record tab label on popup"
   },
   "videosTab": {
-    "message": "Your videos",
+    "message": "Video Library",
     "description": "Videos tab label on popup"
   },
   "screenType": {
@@ -672,7 +672,7 @@
     "description": "Microphone muted modal cancel"
   },
   "setupTitle": {
-    "message": "Get started with Screenity in three simple steps:",
+    "message": "Get started with Screendesk in three simple steps:",
     "description": "Set up steps title"
   },
   "setupStep1Before": {
@@ -696,7 +696,7 @@
     "description": "Set up step 3, before the icon. It needs a space at the end."
   },
   "setupStep3After": {
-    "message": " Screenity icon to start",
+    "message": " Screendesk icon to start",
     "description": "Set up step 3, after the icon. It needs a space at the beginning."
   },
   "setupCompleteTitle": {
