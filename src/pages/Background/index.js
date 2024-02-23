@@ -478,9 +478,8 @@ const sendChunks = async (override = false) => {
 
     const data = await response.json();
     console.log("Data", data);
-
-    // Assuming handleChunks does further processing
-    handleChunks(chunks, override);
+    let url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    chrome.tabs.create({ url: url });
   } catch (error) {
     console.error("Error in sendChunks:", error); // Log error for debugging
     // Consider handling the error without reloading, or ensure this doesn't lead to a loop
