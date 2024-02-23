@@ -1,4 +1,6 @@
 import saveToDrive from "./modules/saveToDrive";
+import fixWebmDuration from "fix-webm-duration";
+
 
 import {
   sendMessageTab,
@@ -451,11 +453,40 @@ const sendChunks = async (override = false) => {
     await chunksStore.iterate((value, key) => {
       chunks.push(value);
     });
+
+    let array = [];
+    let lastTimestamp = 0;
+    for (const chunk of chunks) {
+      // Check if chunk timestamp is smaller than last timestamp, if so, skip
+      if (chunk.timestamp < lastTimestamp) {
+        continue;
+      }
+      lastTimestamp = chunk.timestamp;
+      array.push(chunk.chunk);
+    } 
+
+    const blob = new Blob(array, { type: "video/webm" });
+
+    // Now I need to post to the server the fixedBlob as a video file
+    const formData = new FormData();
+    formData.append("recording[file]", blob, "video.webm");
+
+    const response = await fetch("http://localhost:3001/videoupload/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    console.log("Data", data);
+
+    // Assuming handleChunks does further processing
     handleChunks(chunks, override);
   } catch (error) {
-    chrome.runtime.reload();
+    console.error("Error in sendChunks:", error); // Log error for debugging
+    // Consider handling the error without reloading, or ensure this doesn't lead to a loop
   }
 };
+
 
 const stopRecording = async () => {
   chrome.storage.local.set({ restarting: false });
