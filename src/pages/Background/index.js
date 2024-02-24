@@ -39,57 +39,43 @@ const startAfterCountdown = async () => {
   }
 };
 
-const resetActiveTab = async () => {
-  let editor_url = "editor.html";
 
-  // Check if Chrome version is 109 or below
-  if (navigator.userAgent.includes("Chrome/")) {
-    const version = parseInt(navigator.userAgent.match(/Chrome\/([0-9]+)/)[1]);
-    if (version <= 109) {
-      editor_url = "editorfallback.html";
-    }
-  }
+// DONE
+// IMPORTANT
+// TODO: this handles the countdown. Updates the page that is pinned.
+// This needs to be changed if I want to open the 
+const resetActiveTab = async () => {
   const { activeTab } = await chrome.storage.local.get(["activeTab"]);
 
   // Check if activeTab exists
-  chrome.tabs.get(activeTab, (tab) => {
+  chrome.tabs.get(activeTab, async (tab) => { // Marked this callback as async
     if (tab) {
       // Focus the window
-      chrome.windows.update(tab.windowId, { focused: true }, () => {
+      chrome.windows.update(tab.windowId, { focused: true }, async () => { // Also consider if async is needed here
         chrome.tabs.update(activeTab, {
           active: true,
           selected: true,
           highlighted: true,
         });
-        chrome.tabs.create(
-          {
-            url: editor_url,
-            index: 1,
-            pinned: true,
-            active: false,
-          },
-          async (tab) => {
-            focusTab(activeTab);
-            chrome.storage.local.set({ sandboxTab: tab.id });
-            sendMessageTab(activeTab, { type: "ready-to-record" });
+        focusTab(activeTab);
+        sendMessageTab(activeTab, { type: "ready-to-record" });
 
-            // Check if countdown is set, if so start recording after 3 seconds
-            const { countdown } = await chrome.storage.local.get(["countdown"]);
-            if (countdown) {
-              setTimeout(() => {
-                startAfterCountdown();
-              }, 3500);
-            } else {
-              setTimeout(() => {
-                startAfterCountdown();
-              }, 500);
-            }
-          }
-        );
+        // Correctly using await inside an async function
+        const { countdown } = await chrome.storage.local.get(["countdown"]);
+        if (countdown) {
+          setTimeout(() => {
+            startAfterCountdown();
+          }, 3500);
+        } else {
+          setTimeout(() => {
+            startAfterCountdown();
+          }, 500);
+        }
       });
     }
   });
 };
+
 
 const resetActiveTabRestart = async () => {
   const { activeTab } = await chrome.storage.local.get(["activeTab"]);
@@ -366,88 +352,90 @@ function blobToBase64(blob) {
   });
 }
 
-const handleChunks = async (chunks, override = false) => {
-  const { sendingChunks, sandboxTab } = await chrome.storage.local.get([
-    "sendingChunks",
-    "sandboxTab",
-  ]);
+// const handleChunks = async (chunks, override = false) => {
+//   const { sendingChunks, sandboxTab } = await chrome.storage.local.get([
+//     "sendingChunks",
+//     "sandboxTab",
+//   ]);
 
-  if (sendingChunks) {
-    console.warn("Chunks are already being sent, skipping...");
-    return;
-  }
-  await chrome.storage.local.set({ sendingChunks: true });
+//   if (sendingChunks) {
+//     console.warn("Chunks are already being sent, skipping...");
+//     return;
+//   }
+//   await chrome.storage.local.set({ sendingChunks: true });
 
-  if (chunks.length === 0) {
-    await chrome.storage.local.set({ sendingChunks: false });
-    sendMessageTab(sandboxTab, { type: "make-video-tab", override });
-    return;
-  }
+//   if (chunks.length === 0) {
+//     await chrome.storage.local.set({ sendingChunks: false });
+//     sendMessageTab(sandboxTab, { type: "make-video-tab", override });
+//     return;
+//   }
 
-  // Order chunks by timestamp
-  chunks.sort((a, b) => a.timestamp - b.timestamp);
+//   // Order chunks by timestamp
+//   chunks.sort((a, b) => a.timestamp - b.timestamp);
 
-  let currentIndex = 0;
-  const batchSize = 10;
-  const maxRetries = 3;
-  const retryDelay = 1000;
-  const chunksCount = chunks.length;
+//   let currentIndex = 0;
+//   const batchSize = 10;
+//   const maxRetries = 3;
+//   const retryDelay = 1000;
+//   const chunksCount = chunks.length;
 
-  sendMessageTab(sandboxTab, {
-    type: "chunk-count",
-    count: chunksCount,
-    override,
-  });
+//   sendMessageTab(sandboxTab, {
+//     type: "chunk-count",
+//     count: chunksCount,
+//     override,
+//   });
 
-  const sendBatch = async (batch, retryCount = 0) => {
-    try {
-      const response = await sendMessageTab(sandboxTab, {
-        type: "new-chunk-tab",
-        chunks: batch,
-      });
-      if (!response) {
-        throw new Error("No response or failed response from tab.");
-      }
-    } catch (error) {
-      if (retryCount < maxRetries) {
-        console.error(
-          `Sending batch failed, retrying... Attempt ${retryCount + 1}`,
-          error
-        );
-        setTimeout(() => sendBatch(batch, retryCount + 1), retryDelay);
-      } else {
-        console.error("Maximum retry attempts reached for this batch.", error);
-      }
-    }
-  };
+//   const sendBatch = async (batch, retryCount = 0) => {
+//     try {
+//       const response = await sendMessageTab(sandboxTab, {
+//         type: "new-chunk-tab",
+//         chunks: batch,
+//       });
+//       if (!response) {
+//         throw new Error("No response or failed response from tab.");
+//       }
+//     } catch (error) {
+//       if (retryCount < maxRetries) {
+//         console.error(
+//           `Sending batch failed, retrying... Attempt ${retryCount + 1}`,
+//           error
+//         );
+//         setTimeout(() => sendBatch(batch, retryCount + 1), retryDelay);
+//       } else {
+//         console.error("Maximum retry attempts reached for this batch.", error);
+//       }
+//     }
+//   };
 
-  while (currentIndex < chunksCount) {
-    const end = Math.min(currentIndex + batchSize, chunksCount);
-    const batch = await Promise.all(
-      chunks.slice(currentIndex, end).map(async (chunk, index) => {
-        try {
-          const base64 = await blobToBase64(chunk.chunk);
-          return { chunk: base64, index: currentIndex + index };
-        } catch (error) {
-          console.error("Error converting chunk to Base64", error);
-          return null;
-        }
-      })
-    );
+//   while (currentIndex < chunksCount) {
+//     const end = Math.min(currentIndex + batchSize, chunksCount);
+//     const batch = await Promise.all(
+//       chunks.slice(currentIndex, end).map(async (chunk, index) => {
+//         try {
+//           const base64 = await blobToBase64(chunk.chunk);
+//           return { chunk: base64, index: currentIndex + index };
+//         } catch (error) {
+//           console.error("Error converting chunk to Base64", error);
+//           return null;
+//         }
+//       })
+//     );
 
-    // Filter out any failed conversions
-    const filteredBatch = batch.filter((chunk) => chunk !== null);
-    if (filteredBatch.length > 0) {
-      await sendBatch(filteredBatch);
-    }
-    currentIndex += batchSize;
-  }
+//     // Filter out any failed conversions
+//     const filteredBatch = batch.filter((chunk) => chunk !== null);
+//     if (filteredBatch.length > 0) {
+//       await sendBatch(filteredBatch);
+//     }
+//     currentIndex += batchSize;
+//   }
 
-  await chrome.storage.local.set({ sendingChunks: false });
-  sendMessageTab(sandboxTab, { type: "make-video-tab", override });
-};
+//   await chrome.storage.local.set({ sendingChunks: false });
+//   sendMessageTab(sandboxTab, { type: "make-video-tab", override });
+// };
+
 
 const sendChunks = async (override = false) => {
+  // This is the function that converts the chunks to a video file and sends it to the server
   try {
     const chunks = [];
     await chunksStore.iterate((value, key) => {
@@ -466,10 +454,12 @@ const sendChunks = async (override = false) => {
     } 
 
     const blob = new Blob(array, { type: "video/webm" });
+    // need to fix blob with fix-webm-duration
+    const fixedBlob = await fixWebmDuration(blob);
 
     // Now I need to post to the server the fixedBlob as a video file
     const formData = new FormData();
-    formData.append("recording[file]", blob, "video.webm");
+    formData.append("recording[file]", fixedBlob, "video.webm");
 
     const response = await fetch("http://localhost:3001/videoupload/upload", {
       method: "POST",
@@ -480,6 +470,8 @@ const sendChunks = async (override = false) => {
     console.log("Data", data);
     let url = "http://localhost:3001/recordings/" + data.recording_uuid;
     chrome.tabs.create({ url: url });
+    // store the recording_uuid in the chrome storage
+    chrome.storage.local.set({ recording_uuid: data.recording_uuid });
   } catch (error) {
     console.error("Error in sendChunks:", error); // Log error for debugging
     // Consider handling the error without reloading, or ensure this doesn't lead to a loop
@@ -505,42 +497,10 @@ const stopRecording = async () => {
   });
 
   chrome.storage.local.set({ recordingStartTime: 0 });
-  const { sandboxTab } = await chrome.storage.local.get(["sandboxTab"]);
+  handleRecordingComplete();
 
-  if (duration > maxDuration) {
-    // Close the sandbox tab, open a new one with fallback editor
-    chrome.tabs.create(
-      {
-        url: "editorfallback.html",
-        active: true,
-      },
-      (tab) => {
-        chrome.tabs.onUpdated.addListener(function _(
-          tabId,
-          changeInfo,
-          updatedTab
-        ) {
-          if (tabId === tab.id && changeInfo.status === "complete") {
-            chrome.tabs.onUpdated.removeListener(_);
-            // Close the existing sandbox tab
-            removeTab(sandboxTab);
-            chrome.storage.local.set({ sandboxTab: tab.id });
-            sendChunks();
-          }
-        });
-      }
-    );
-  } else {
-    // Move the tab to the last position
-    chrome.tabs.get(sandboxTab, (tab) => {
-      chrome.windows.update(tab.windowId, { focused: true }).then(() => {
-        chrome.tabs.update(sandboxTab, { active: true, pinned: false });
-        chrome.tabs.move(sandboxTab, { index: -1 });
-      });
-    });
+  sendChunks();
 
-    sendChunks();
-  }
 
   chrome.action.setIcon({ path: "assets/icon-34.png" });
 
@@ -556,36 +516,36 @@ const stopRecording = async () => {
   discardOffscreenDocuments();
 };
 
-const forceProcessing = async () => {
-  // Need to create a new sandbox tab
-  let editor_url = "editor.html";
+// const forceProcessing = async () => {
+//   // Need to create a new sandbox tab
+//   let editor_url = "editor.html";
 
-  // Get sandbox tab
-  const { sandboxTab } = await chrome.storage.local.get(["sandboxTab"]);
+//   // Get sandbox tab
+//   const { sandboxTab } = await chrome.storage.local.get(["sandboxTab"]);
 
-  chrome.tabs.create(
-    {
-      url: editor_url,
-      active: true,
-    },
-    (tab) => {
-      chrome.tabs.onUpdated.addListener(function _(
-        tabId,
-        changeInfo,
-        updatedTab
-      ) {
-        if (tabId === tab.id && changeInfo.status === "complete") {
-          chrome.tabs.onUpdated.removeListener(_);
-          // Close the existing sandbox tab
-          removeTab(sandboxTab);
-          chrome.storage.local.set({ sandboxTab: tab.id });
+//   chrome.tabs.create(
+//     {
+//       url: editor_url,
+//       active: true,
+//     },
+//     (tab) => {
+//       chrome.tabs.onUpdated.addListener(function _(
+//         tabId,
+//         changeInfo,
+//         updatedTab
+//       ) {
+//         if (tabId === tab.id && changeInfo.status === "complete") {
+//           chrome.tabs.onUpdated.removeListener(_);
+//           // Close the existing sandbox tab
+//           removeTab(sandboxTab);
+//           chrome.storage.local.set({ sandboxTab: tab.id });
 
-          sendChunks(true);
-        }
-      });
-    }
-  );
-};
+//           sendChunks(true);
+//         }
+//       });
+//     }
+//   );
+// };
 
 // For some reason without this the service worker doesn't always work
 chrome.runtime.onStartup.addListener(() => {
@@ -1784,8 +1744,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     );
   } else if (request.type === "clear-recordings") {
     clearAllRecordings();
-  } else if (request.type === "force-processing") {
-    forceProcessing();
   } else if (request.type === "focus-this-tab") {
     focusTab(sender.tab.id);
   } else if (request.type === "stop-recording-tab-backup") {

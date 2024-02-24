@@ -54,7 +54,7 @@ const PopupContainer = (props) => {
 
   const checkUserAuthentication = () => {
     fetch('http://localhost:3001/auth/ping', {
-      method: 'GET',
+      includes: 'credentials',
     })
     .then(response => {
       if(response.ok) {
