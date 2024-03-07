@@ -16,16 +16,16 @@
 <circle cx="14.5007" cy="14.5007" r="9.22727" fill="url(#paint1_radial_3031_1227)"/>
 <defs>
 <radialGradient id="paint0_radial_3031_1227" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(10.2785) rotate(81.7628) scale(34.5116 34.2998)">
-<stop offset="0.231286" stop-color="#2BAEF8"/>
-<stop offset="0.463542" stop-color="#3582F6"/>
-<stop offset="0.744792" stop-color="#486DEF"/>
-<stop offset="1" stop-color="#7B9AEA"/>
+<stop offset="0.231286" stop-color="#f43f5e"/>
+<stop offset="0.463542" stop-color="#e11d48"/>
+<stop offset="0.744792" stop-color="#be123c"/>
+<stop offset="1" stop-color="#fda4af"/>
 </radialGradient>
 <radialGradient id="paint1_radial_3031_1227" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(11.8143 5.27344) rotate(81.7628) scale(21.9619 21.8271)">
-<stop offset="0.231286" stop-color="#2BAEF8"/>
-<stop offset="0.463542" stop-color="#3582F6"/>
-<stop offset="0.744792" stop-color="#486DEF"/>
-<stop offset="1" stop-color="#7B9AEA"/>
+<stop offset="0.231286" stop-color="#f43f5e"/>
+<stop offset="0.463542" stop-color="#e11d48"/>
+<stop offset="0.744792" stop-color="#be123c"/>
+<stop offset="1" stop-color="#fda4af"/>
 </radialGradient>
 </defs>
 </svg>

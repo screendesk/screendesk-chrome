@@ -53,28 +53,36 @@ const PopupContainer = (props) => {
   const [URL, setURL] = useState("https://docs.screendesk.io/");
 
   const checkUserAuthentication = () => {
-    fetch('http://localhost:3001/auth/ping', {
-      includes: 'credentials',
-    })
-    .then(response => {
-      if(response.ok) {
-        console.log('User is authenticated');
-        // User is logged in, proceed accordingly
+    // Retrieve the auth_token from chrome.storage.local
+    chrome.storage.local.get(['auth_token'], function(result) {
+      if (result.auth_token) {
+        // Auth token is found, proceed with the fetch request to check authentication status
+        fetch('http://localhost:3001/auth_status', {
+          method: 'GET',
+          // no-cors mode does not allow setting headers, so we need to use cors mode
+          headers: {
+            'Authorization': `Bearer ${result.auth_token}`, // Use the retrieved auth_token
+            'Content-Type': 'application/json'
+          },
+          mode: 'cors'  })
+        .then(response => {
+          if(response.ok) {
+          } else {
+            chrome.runtime.sendMessage({action: "openSignInPage"})
+
+          }
+        })
+        .catch(error => console.error('Error:', error));
       } else {
-        console.log('User is not authenticated');
-        // User is not logged in, handle accordingly
-      
-        // Send a message to the background script to open a new tab
-        chrome.runtime.sendMessage({action: "openSignInPage"});
-        window.close();        
+        chrome.runtime.sendMessage({action: "openSignInPage"})
       }
-    })
-    .catch(error => console.error('Error:', error));
-  };
+    });
+  };  
 
   useEffect(() => {
     const handleMessage = (request, sender, sendResponse) => {
       if (request.action === "popupOpened") {
+        console.log('Popup opened');
         checkUserAuthentication();
       }
     };

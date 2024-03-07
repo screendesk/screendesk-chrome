@@ -72,7 +72,7 @@
   bottom: 0px;
   margin: auto;
   border-radius: 50%;
-	background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #2BAEF8 23.13%, #3582F6 46.35%, #486DEF 74.48%, #7B9AEA 100%);
+	background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #f43f5e 23.13%, #e11d48 46.35%, #be123c 74.48%, #fda4af 100%);
   width: 200px;
   height: 200px;
   transition: all 1.5s ease-in-out;
@@ -92,11 +92,11 @@
   opacity: 1;
 }
 .c2 {
-  background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #2B96F8 23.13%, #356BF6 64.58%);
+  background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #fb7185 23.13%, #f43f5e 64.58%);
 	transform: translate(20px, 20px);
 }
 .c3 {
-  background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #4884CA 15.30%, #2B89F8 78.83%);
+  background: radial-gradient(118.30% 119.01% at 35.44% 0.00%, #e11d48 15.30%, #f43f5e 78.83%);
 	transform: translate(-30px, -40px);
 }
 .c3:after {
@@ -112,7 +112,7 @@
   bottom: 0px;
   margin: auto;
   transition: cubic-bezier(0.82, 0.1, 0.24, 0.99) 1.5s;
-  background: #CBE8F7;
+  background: #fff1f2;
   z-index: -1;
 }
 .recording-countdown .c2 {

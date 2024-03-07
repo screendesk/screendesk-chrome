@@ -339,18 +339,18 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = function () {
-      resolve(reader.result);
-    };
-    reader.onerror = function (error) {
-      reject(error);
-    };
-    reader.readAsDataURL(blob);
-  });
-}
+// function blobToBase64(blob) {
+//   return new Promise((resolve, reject) => {
+//     const reader = new FileReader();
+//     reader.onload = function () {
+//       resolve(reader.result);
+//     };
+//     reader.onerror = function (error) {
+//       reject(error);
+//     };
+//     reader.readAsDataURL(blob);
+//   });
+// }
 
 // const handleChunks = async (chunks, override = false) => {
 //   const { sendingChunks, sandboxTab } = await chrome.storage.local.get([
@@ -460,9 +460,16 @@ const sendChunks = async (override = false) => {
     // Now I need to post to the server the fixedBlob as a video file
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
-
-    const response = await fetch("http://localhost:3001/videoupload/upload", {
+    const auth_token = await chrome.storage.local.get(['auth_token'], function(result) {
+     if (result.auth_token) {
+       return result.auth_token;
+     }
+    });
+    const response = await fetch("http://localhost:3001/chrome/upload", {
       method: "POST",
+      headers: {
+        'Authorization': `Bearer ${auth_token}`, // Correctly setting the header
+      },
       body: formData,
     });
 
@@ -657,9 +664,9 @@ const handleDismiss = async () => {
   chrome.action.setIcon({ path: "assets/icon-34.png" });
 };
 
+// Need to make sure we don't open the editor.html 
 const handleRestart = async () => {
   chrome.storage.local.set({ restarting: true });
-  let editor_url = "editor.html";
 
   // Check if Chrome version is 109 or below
   if (navigator.userAgent.includes("Chrome/")) {
@@ -1031,6 +1038,8 @@ const executeScripts = async () => {
   await Promise.all(executeScriptPromises);
 };
 
+
+// TODO: update the setuninstall url
 // On first install open setup.html
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
@@ -1182,6 +1191,7 @@ const removeSandbox = async () => {
   removeTab(sandboxTab);
 };
 
+// TODO: this needs to be checked
 const newSandboxPageRestart = async () => {
   let editor_url = "editor.html";
 
@@ -1222,104 +1232,10 @@ const isPinned = (sendResponse) => {
   });
 };
 
-const requestDownload = async (base64, title) => {
-  // Open a new tab to get URL
-  chrome.tabs.create(
-    {
-      url: "download.html",
-      active: false,
-    },
-    (tab) => {
-      chrome.tabs.onUpdated.addListener(function _(
-        tabId,
-        changeInfo,
-        updatedTab
-      ) {
-        if (tabId === tab.id && changeInfo.status === "complete") {
-          chrome.tabs.onUpdated.removeListener(_);
-          sendMessageTab(tab.id, {
-            type: "download-video",
-            base64: base64,
-            title: title,
-          });
-        }
-      });
-    }
-  );
-};
-
-const downloadIndexedDB = async () => {
-  // Open a new tab to get URL
-  chrome.tabs.create(
-    {
-      url: "download.html",
-      active: false,
-    },
-    (tab) => {
-      chrome.tabs.onUpdated.addListener(function _(
-        tabId,
-        changeInfo,
-        updatedTab
-      ) {
-        if (tabId === tab.id && changeInfo.status === "complete") {
-          chrome.tabs.onUpdated.removeListener(_);
-          sendMessageTab(tab.id, {
-            type: "download-indexed-db",
-          });
-        }
-      });
-    }
-  );
-};
-
 const getPlatformInfo = (sendResponse) => {
   chrome.runtime.getPlatformInfo((info) => {
     sendResponse(info);
   });
-};
-
-const restoreRecording = async () => {
-  let editor_url = "editorfallback.html";
-
-  // Check if Chrome version is 109 or below
-  if (navigator.userAgent.includes("Chrome/")) {
-    const version = parseInt(navigator.userAgent.match(/Chrome\/([0-9]+)/)[1]);
-    if (version <= 109) {
-      editor_url = "editorfallback.html";
-    }
-  }
-
-  let chunks = [];
-  await chunksStore.iterate((value, key) => {
-    chunks.push(value);
-  });
-
-  if (chunks.length === 0) {
-    return;
-  }
-
-  chrome.tabs.create(
-    {
-      url: editor_url,
-      active: true,
-    },
-    async (tab) => {
-      // Set URL as sandbox tab
-      chrome.storage.local.set({ sandboxTab: tab.id });
-      // Wait for the tab to be loaded
-      await new Promise((resolve) => {
-        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-          if (info.status === "complete" && tabId === tab.id) {
-            sendMessageTab(tab.id, {
-              type: "restore-recording",
-            });
-
-            sendChunks();
-          }
-        });
-      });
-    }
-  );
 };
 
 const checkRestore = async (sendResponse) => {
@@ -1708,7 +1624,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       true
     );
   } else if (request.type === "join-waitlist") {
-    createTab("https://tally.so/r/npojNV", true, true);
+    createTab("https://m4lkahr28fl.typeform.com/to/HQWoa8Is", true, true);
   } else if (request.type === "chrome-update-info") {
     createTab(
       "https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/what-are-the-technical-requirements-for-using-screendesk/6kdB6qru6naVD8ZLFvX3m9",
@@ -1753,8 +1669,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "get-platform-info") {
     getPlatformInfo(sendResponse);
     return true;
-  } else if (request.type === "restore-recording") {
-    restoreRecording();
   } else if (request.type === "check-restore") {
     checkRestore(sendResponse);
     return true;
@@ -1793,8 +1707,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "save-to-drive-fallback") {
     handleSaveToDrive(sendResponse, request, true);
     return true;
-  } else if (request.type === "request-download") {
-    requestDownload(request.base64, request.title);
   } else if (request.type === "resize-window") {
     resizeWindow(request.width, request.height);
   } else if (request.type === "available-memory") {
@@ -1809,21 +1721,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     );
   } else if (request.type === "add-alarm-listener") {
     addAlarmListener();
+  } else if (request.action === "openSignInPage") {
+    console.log("Open sign in page message");
+    chrome.windows.create({
+      // Specify the URL of the sign-in page
+      url: 'http://localhost:3001/users/sign_in',
+      // Specify the type of window to create
+      type: 'popup',
+      // Optionally specify width and height for the popup window
+      width: 500, // Adjust width as needed
+      height: 700, // Adjust height as needed
+      // Set focused to true to bring the new window to the front
+      focused: true
+    }); 
   }
 });
 
-// self.addEventListener("message", (event) => {
-//   handleMessage(event.data);
-// });
 
-chrome.action.onClicked.addListener((tab) => {
-  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, {action: "popupOpened"});
-  });
+
+// 1. Listen for the click on the extension icon
+chrome.action.onClicked.addListener(async () => {
+  const { activeTab } = await chrome.storage.local.get(["activeTab"]);
+  chrome.tabs.sendMessage(activeTab.id, {action: "popupOpened"});
 });
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "openSignInPage") {
-    chrome.tabs.create({url: 'http://localhost:3001/users/sign_in'});
+chrome.runtime.onMessageExternal.addListener(
+  function(request, sender, sendResponse) {
+    if (request.action === "authToken") {
+      // Handle the received JWT token, e.g., store it
+      chrome.storage.local.set({auth_token: request.token}, function() {
+        console.log("JWT token stored.");
+      });
+    }
   }
-});
+);
+
+
+
+

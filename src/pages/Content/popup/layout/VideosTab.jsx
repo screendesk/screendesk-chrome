@@ -13,13 +13,13 @@ import {
 } from "../../images/popup/images";
 
 const VideosTab = () => {
-  const [URL, SetURL] = useState("https://tally.so/r/npojNV");
+  const [URL, SetURL] = useState("https://m4lkahr28fl.typeform.com/to/HQWoa8Is");
 
   useEffect(() => {
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (!locale.includes("en")) {
       SetURL(
-        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://tally.so/r/npojNV`
+        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://m4lkahr28fl.typeform.com/to/HQWoa8Is`
       );
     }
   }, []);
