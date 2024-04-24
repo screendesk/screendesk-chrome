@@ -1,97 +1,160 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import * as Tabs from "@radix-ui/react-tabs";
-
 import VideoItem from "../components/VideoItem";
 
-import {
-  TempTwitter,
-  TempDesignSystem,
-  TempFigma,
-  TempSubstack,
-  TempMarketing,
-  DropdownIcon,
-} from "../../images/popup/images";
-
 const VideosTab = () => {
-  const [URL, SetURL] = useState("https://m4lkahr28fl.typeform.com/to/HQWoa8Is");
+  const [URL, setURL] = useState("https://m4lkahr28fl.typeform.com/to/HQWoa8Is");
+  const [videos, setVideos] = useState([]);
+  const [activeTab, setActiveTab] = useState("myVideos");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [authToken, setAuthToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    chrome.storage.local.get(['auth_token'], (result) => {
+      const token = result.auth_token;
+      if (token) {
+        setAuthToken(token);
+      } else {
+        console.error('No auth token found');
+      }
+    });
+
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (!locale.includes("en")) {
-      SetURL(
-        `https://translate.google.com/translate?sl=en&tl=${locale}&u=https://m4lkahr28fl.typeform.com/to/HQWoa8Is`
-      );
+      setURL(`https://translate.google.com/translate?sl=en&tl=${locale}&u=${URL}`);
     }
   }, []);
 
-  // Example temporary data
-  const videos = [
-    { name: "Bug report", thumbnail: TempTwitter, date: "3 minutes ago" },
-    { name: "Figma async review", thumbnail: TempFigma, date: "1 hour ago" },
-    {
-      name: "Design systems onboarding",
-      thumbnail: TempDesignSystem,
-      date: "4 days ago",
-    },
-    { name: "Cool SaaS resources", thumbnail: TempMarketing, date: "Feb 12" },
-    { name: "Newsletter promo", thumbnail: TempSubstack, date: "Jan 23" },
-  ];
+  // Debounce function
+  const debounce = (func, delay) => {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        func.apply(this, args);
+      }, delay);
+    };
+  };
+
+  const debouncedSearch = useCallback(debounce((query) => {
+    if (!authToken) return;
+
+    let endpoint = '';
+    setIsLoading(true);
+
+    switch (activeTab) {
+      case "myVideos":
+        endpoint = `https://app.screendesk.io/chrome/library?query=${encodeURIComponent(query)}`;
+        break;
+      case "teamVideos":
+        endpoint = `https://app.screendesk.io/chrome/library/team_videos?query=${encodeURIComponent(query)}`;
+        break;
+    }
+
+    if (endpoint) {
+      fetchVideos(endpoint);
+    }
+  }, 500), [activeTab, authToken]); // 500ms delay
+
+  useEffect(() => {
+    debouncedSearch(searchQuery);
+  }, [searchQuery, debouncedSearch]);
+
+  const fetchVideos = async (endpoint) => {
+    if (!endpoint) return;
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setVideos(data);
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
 
   return (
     <div className="video-ui">
-      <Tabs.Root className="TabsRoot" defaultValue="personal">
+      <Tabs.Root className="TabsRoot" defaultValue={activeTab} onValueChange={(value) => {
+        setIsLoading(true);
+        setActiveTab(value);
+      }}>
         <Tabs.List className="TabsList" aria-label="Manage your account">
-          <div className="TabsTriggerWrap">
-            <Tabs.Trigger className="TabsTrigger" value="personal">
-              <div className="TabsTriggerLabel">
-                <span>Personal</span>
-              </div>
-            </Tabs.Trigger>
-            <Tabs.Trigger className="TabsTrigger" value="team">
-              <div className="TabsTriggerLabel">
-                <span>Team</span>
-              </div>
-            </Tabs.Trigger>
-            <Tabs.Trigger className="TabsTrigger" value="shared">
-              <div className="TabsTriggerLabel">
-                <span>Shared</span>
-              </div>
-            </Tabs.Trigger>
-          </div>
-          <div className="TabsSort" tabIndex="0">
-            <div className="TabsSortLabel">
-              Latest <img src={DropdownIcon} />
-            </div>
-          </div>
+          <Tabs.Trigger className="TabsTrigger" value="myVideos">My Videos</Tabs.Trigger>
+          <Tabs.Trigger className="TabsTrigger" value="teamVideos">Team Videos</Tabs.Trigger>
         </Tabs.List>
-        <Tabs.Content className="TabsContent" value="personal">
-          <div className="videos-list">
-            {videos.map((video, i) => (
-              <VideoItem
-                title={video.name}
-                key={i}
-                date={video.date}
-                thumbnail={video.thumbnail}
-              />
-            ))}
-          </div>
-          <div className="bottom-section">
-            <button
-              role="button"
-              className="main-button dashboard-button"
-              tabIndex="0"
-            >
-              <span className="main-button-label">Go to dashboard</span>
-              <span className="main-button-shortcut">Ctrl+D</span>
-            </button>
-          </div>
+        
+        {/* Search input can be placed here or within each tab content */}
+        <div className="search-input-container">
+          <input
+            type="text"
+            placeholder="Search for videos..."
+            value={searchQuery}
+            onChange={handleSearchInputChange}
+            className="search-input"
+          />
+        </div>
+
+        {/* Render "myVideos" and "teamVideos" similarly, wrapping them in a "videos-list" div */}
+        <Tabs.Content className="TabsContent" value="myVideos">
+          {!isLoading && (
+            <div className="videos-list">
+              {videos.length > 0 ? (
+                videos.map((video, i) => (
+                  <VideoItem
+                    key={i}
+                    title={video.name}
+                    date={video.date}
+                    thumbnail={video.thumbnail}
+                    uuid={video.uuid}
+                  />
+                ))
+              ) : (
+                <div className="no-videos-container">No videos found.</div>
+              )}
+            </div>
+          )}
         </Tabs.Content>
-        <Tabs.Content className="TabsContent" value="team">
-          Temp
+
+        <Tabs.Content className="TabsContent" value="teamVideos">
+          {!isLoading && (
+            <div className="videos-list">
+              {videos.length > 0 ? (
+                videos.map((video, i) => (
+                  <VideoItem
+                    key={i}
+                    title={video.name}
+                    date={video.date}
+                    thumbnail={video.thumbnail}
+                    uuid={video.uuid}
+                  />
+                ))
+              ) : (
+                <div className="no-videos-container">No videos found.</div>
+              )}
+            </div>
+          )}
         </Tabs.Content>
-        <Tabs.Content className="TabsContent" value="shared">
-          Temp
-        </Tabs.Content>
+
+        {isLoading && <div className="loader-container"><span className="loader"></span></div>}
+
       </Tabs.Root>
     </div>
   );

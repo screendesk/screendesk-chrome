@@ -13,7 +13,7 @@
   "icons": {
     "128": "assets/img/icon-128.png"
   },
-  "host_permissions": ["https://*/", "http://*/"],
+  "host_permissions": ["https://*.screendesk.io/*", "http://*.screendesk.io/*", "https://screendesk-images.s3.amazonaws.com/*"],
   "externally_connectable": {
     "matches": ["<all_urls>"]
   },
@@ -54,9 +54,6 @@
   "oauth2": {
     "client_id": "560517327251-m7n1k3kddknu7s9s4ejvrs1bj91gutd7.apps.googleusercontent.com",
     "scopes": ["https://www.googleapis.com/auth/drive.file"]
-  },
-  "cross_origin_embedder_policy": {
-    "value": "require-corp"
   },
   "cross_origin_opener_policy": {
     "value": "same-origin"

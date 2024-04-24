@@ -572,6 +572,16 @@ const SettingsMenu = (props) => {
             className="DropdownMenuItem"
             onSelect={(e) => {
               e.preventDefault();
+              chrome.runtime.sendMessage({ type: "restore-recording" });
+            }}
+            disabled={!restore}
+          >
+            {chrome.i18n.getMessage("restoreRecording")}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item
+            className="DropdownMenuItem"
+            onSelect={(e) => {
+              e.preventDefault();
               handleTroubleshooting();
             }}
           >

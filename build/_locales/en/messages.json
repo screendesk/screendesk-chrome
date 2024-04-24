@@ -1,10 +1,10 @@
 {
   "extName": {
-    "message": "Screendesk - Screen Recorder & Annotation Tool",
+    "message": "Screendesk - Screen Recorder",
     "description": "Extension name"
   },
   "extDesc": {
-    "message": "The free and privacy-friendly screen recorder with no limits. Capture, annotate, edit videos and more - all with no sign in needed.",
+    "message": "The companion screen recorder from Screendesk.io",
     "description": "Extension description"
   },
   "recordTab": {

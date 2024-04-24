@@ -125,7 +125,7 @@ const Content = () => {
   }
 }
 
-[data-radix-popper-content-wrapper] { z-index: 999999999999!important; } 
+#screendesk-ui [data-radix-popper-content-wrapper] { z-index: 999999999999!important; } 
 
 .screendesk-shadow-dom .CanvasContainer {
 	position: fixed;
@@ -150,6 +150,7 @@ const Content = () => {
 }
 
 .ScreendeskDropdownMenuContent {
+  z-index: 99999999999!important;
   min-width: 200px;
   background-color: white;
   margin-top: 4px;
@@ -157,7 +158,6 @@ const Content = () => {
   padding-top: 12px;
   padding-bottom: 12px;
   border-radius: 15px;
-  z-index: 99999;
   font-family: 'Satoshi-Medium', sans-serif;
   color: #29292F;
   box-shadow: 0px 10px 38px -10px rgba(22, 23, 24, 0.35),

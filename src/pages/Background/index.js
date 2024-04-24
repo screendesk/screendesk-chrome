@@ -1,5 +1,7 @@
 import saveToDrive from "./modules/saveToDrive";
 import fixWebmDuration from "fix-webm-duration";
+import { default as fixWebmDurationFallback } from "webm-duration-fix";
+
 
 
 import {
@@ -380,10 +382,10 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 //   const chunksCount = chunks.length;
 
 //   sendMessageTab(sandboxTab, {
-//     type: "chunk-count",
-//     count: chunksCount,
-//     override,
-//   });
+  //   type: "chunk-count",
+  //   count: chunksCount,
+  //   override: override,
+  // });
 
 //   const sendBatch = async (batch, retryCount = 0) => {
 //     try {
@@ -435,56 +437,93 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 
 const sendChunks = async (override = false) => {
-  // This is the function that converts the chunks to a video file and sends it to the server
   try {
     const chunks = [];
+    // Iterate over the chunks stored and collect them into an array.
     await chunksStore.iterate((value, key) => {
       chunks.push(value);
     });
 
-    let array = [];
-    let lastTimestamp = 0;
-    for (const chunk of chunks) {
-      // Check if chunk timestamp is smaller than last timestamp, if so, skip
-      if (chunk.timestamp < lastTimestamp) {
-        continue;
+    if (chunks.length === 0) {
+      return;
+    }
+
+    // Sort the chunks by their timestamp to ensure correct order.
+    chunks.sort((a, b) => a.timestamp - b.timestamp);
+
+    // Filter and process chunks to prepare for blob creation.
+    const filteredChunks = chunks
+      .filter((chunk, index, array) => {
+        return index === 0 || chunk.timestamp > array[index - 1].timestamp;
+      })
+      .map(chunk => chunk.chunk);
+
+    if (filteredChunks.length === 0) {
+      throw new Error('No valid video chunks to upload.');
+    }
+
+    // Create a Blob from the filtered chunks.
+    const blob = new Blob(filteredChunks, { type: "video/webm; codecs=vp8, opus" });
+
+    // Check the OS type
+    const isWindows10 = navigator.userAgent.includes("Windows NT 10.0");
+
+    // Retrieve the recordingDuration
+    const { recordingDuration } = await chrome.storage.local.get("recordingDuration");
+
+    let fixedBlob;
+    if (recordingDuration && recordingDuration > 0) {
+      if (!isWindows10) {
+        // Assuming fixWebmDuration is properly defined elsewhere
+        fixedBlob = await fixWebmDuration(blob, parseInt(recordingDuration));
+      } else {
+        // Fallback method if on Windows 10
+        fixedBlob = await fixWebmDurationFallback(blob, { type: "video/webm; codecs=vp8, opus" });
       }
-      lastTimestamp = chunk.timestamp;
-      array.push(chunk.chunk);
-    } 
+    } else {
+      fixedBlob = blob; // Use the original blob if duration is not specified or invalid
+    }
 
-    const blob = new Blob(array, { type: "video/webm" });
-    // need to fix blob with fix-webm-duration
-    const fixedBlob = await fixWebmDuration(blob);
+    // Handle authentication token retrieval
+    const { auth_token } = await new Promise((resolve, reject) => {
+      chrome.storage.local.get(['auth_token'], function(result) {
+        if (chrome.runtime.lastError) {
+          reject(chrome.runtime.lastError);
+        } else if (result.auth_token) {
+          resolve(result);
+        } else {
+          reject(new Error('Auth token not found'));
+        }
+      });
+    });
 
-    // Now I need to post to the server the fixedBlob as a video file
+    // Upload the fixed Blob to the server.
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
-    const auth_token = await chrome.storage.local.get(['auth_token'], function(result) {
-     if (result.auth_token) {
-       return result.auth_token;
-     }
-    });
-    const response = await fetch("http://localhost:3001/chrome/upload", {
+    const response = await fetch("https://app.screendesk.io/chrome/upload", {
       method: "POST",
       headers: {
-        'Authorization': `Bearer ${auth_token}`, // Correctly setting the header
+        'Authorization': `Bearer ${auth_token}`,
       },
       body: formData,
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle the response and create a new tab with the recording URL.
     const data = await response.json();
     console.log("Data", data);
-    let url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
     chrome.tabs.create({ url: url });
-    // store the recording_uuid in the chrome storage
+
+    // Update local storage with the recording UUID.
     chrome.storage.local.set({ recording_uuid: data.recording_uuid });
   } catch (error) {
-    console.error("Error in sendChunks:", error); // Log error for debugging
-    // Consider handling the error without reloading, or ensure this doesn't lead to a loop
+    console.error("Error in sendChunks:", error);
   }
 };
-
 
 const stopRecording = async () => {
   chrome.storage.local.set({ restarting: false });
@@ -1049,14 +1088,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (locale.includes("en")) {
       chrome.runtime.setUninstallURL(
-        "https://tally.so/r/w8Zro5?version=" +
+        "https://m4lkahr28fl.typeform.com/to/HQWoa8Is?version=" +
           chrome.runtime.getManifest().version
       );
     } else {
       chrome.runtime.setUninstallURL(
         "http://translate.google.com/translate?js=n&sl=auto&tl=" +
           locale +
-          "&u=https://tally.so/r/w8Zro5?version=" +
+          "&u=https://m4lkahr28fl.typeform.com/to/HQWoa8Is?version=" +
           chrome.runtime.getManifest().version
       );
     }
@@ -1075,14 +1114,14 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     const locale = chrome.i18n.getMessage("@@ui_locale");
     if (locale.includes("en")) {
       chrome.runtime.setUninstallURL(
-        "https://tally.so/r/3Ex6kX?version=" +
+        "https://m4lkahr28fl.typeform.com/to/HQWoa8Is?version=" +
           chrome.runtime.getManifest().version
       );
     } else {
       chrome.runtime.setUninstallURL(
         "http://translate.google.com/translate?js=n&sl=auto&tl=" +
           locale +
-          "&u=https://tally.so/r/3Ex6kX?version=" +
+          "&u=https://m4lkahr28fl.typeform.com/to/HQWoa8Is?version=" +
           chrome.runtime.getManifest().version
       );
     }
@@ -1653,7 +1692,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     createTab("https://screendesk.io/", false, true);
   } else if (request.type === "report-bug") {
     createTab(
-      "https://tally.so/r/3ElpXq?version=" +
+      "https://m4lkahr28fl.typeform.com/to/HQWoa8Is?version=" +
         chrome.runtime.getManifest().version,
       false,
       true
@@ -1669,6 +1708,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "get-platform-info") {
     getPlatformInfo(sendResponse);
     return true;
+  } else if (request.type === "restore-recording") {
+    sendChunks();
   } else if (request.type === "check-restore") {
     checkRestore(sendResponse);
     return true;
@@ -1725,7 +1766,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Open sign in page message");
     chrome.windows.create({
       // Specify the URL of the sign-in page
-      url: 'http://localhost:3001/users/sign_in',
+      url: 'https://app.screendesk.io/users/sign_in',
       // Specify the type of window to create
       type: 'popup',
       // Optionally specify width and height for the popup window
@@ -1740,10 +1781,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 
 // 1. Listen for the click on the extension icon
-chrome.action.onClicked.addListener(async () => {
-  const { activeTab } = await chrome.storage.local.get(["activeTab"]);
-  chrome.tabs.sendMessage(activeTab.id, {action: "popupOpened"});
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+    var activeTab = tabs[0];
+    chrome.tabs.sendMessage(activeTab.id, {action: "popupOpened"});
+  });
 });
+
 
 chrome.runtime.onMessageExternal.addListener(
   function(request, sender, sendResponse) {

@@ -85,6 +85,6 @@ You can create it accessing [Google Cloud Console](https://console.cloud.google.
 - Thanks to [HelpKit](https://www.helpkit.so/) for sponsoring this project by hosting the [Screendesk Help Center](https://help.screendesk.io/).
 - Thanks to [Mei Xuan](https://www.behance.net/meixuanloo) for helping with the Chinese translation of the extension.
 
-If you need any help, or want to become a Screendesk expert, you can browse articles and guides in the [help center](https://help.screendesk.io). You can also submit any feedback or ideas in this [form](https://tally.so/r/3ElpXq), or contact through [this page](https://help.screendesk.io/contact)
+If you need any help, or want to become a Screendesk expert, you can browse articles and guides in the [help center](https://help.screendesk.io). You can also submit any feedback or ideas in this [form](https://m4lkahr28fl.typeform.com/to/HQWoa8Is), or contact through [this page](https://help.screendesk.io/contact)
 
 Feel free to reach out to me through email at hi@alyssax.com or [on Twitter](https://twitter.com/alyssaxuu) if you have any questions or feedback! Hope you find this useful 💜
