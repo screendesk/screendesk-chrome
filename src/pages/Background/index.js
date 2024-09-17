@@ -500,6 +500,7 @@ const sendChunks = async (override = false) => {
     // Upload the fixed Blob to the server.
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
+    // const response = await fetch("https://app.screendesk.io/chrome/upload", {
     const response = await fetch("https://app.screendesk.io/chrome/upload", {
       method: "POST",
       headers: {
@@ -515,6 +516,7 @@ const sendChunks = async (override = false) => {
     // Handle the response and create a new tab with the recording URL.
     const data = await response.json();
     console.log("Data", data);
+    // let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
     let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
     chrome.tabs.create({ url: url });
 
