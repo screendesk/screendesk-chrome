@@ -1,37 +1,65 @@
 import React, { useState } from "react";
-import { CopyLinkIcon, MoreActionsIcon } from "../../images/popup/images";
+import { CopyLinkIcon } from "../../images/popup/images";
 
 const VideoItem = (props) => {
-  // State to manage the copy button text
-  const [copyButtonText, setCopyButtonText] = useState("Copy link");
+  const [isHovered, setIsHovered] = useState(false);
+  const [copyLinkText, setCopyLinkText] = useState("Copy link");
+  const [copyGifText, setCopyGifText] = useState("Copy GIF");
 
-  // Function to handle the copy link action
   const handleCopyLink = (event) => {
-    event.stopPropagation(); // Prevent the click event from bubbling up to the parent div
+    event.stopPropagation();
     const link = `https://app.screendesk.io/recordings/${props.uuid}`;
-    navigator.clipboard.writeText(link)
-      .then(() => {
-        // Change button text to "Copied!"
-        setCopyButtonText("Copied!");
-        // Change the button text back to "Copy link" after 3 seconds
-        setTimeout(() => {
-          setCopyButtonText("Copy link");
-        }, 3000);
-      })
-      .catch(err => {
-        // Error handling
-        console.error('Failed to copy link:', err);
-      });
+    copyToClipboard(link, setCopyLinkText);
   };
 
-  // Function to handle opening the video in a new tab
+  const handleCopyGif = (event) => {
+    event.stopPropagation();
+    const htmlContent = `
+      <div>
+        <a href="https://app.screendesk.io/recordings/${props.uuid}">
+          <p>${props.title} - Watch Video</p>
+        </a>
+        <a href="${props.gif}">
+          <img style="max-width:300px;" src="${props.gif}">
+        </a>
+      </div>
+    `;
+    copyRichContentToClipboard(htmlContent, setCopyGifText);
+  };
+
+  const copyToClipboard = (text, setButtonText) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setButtonText("Copied!");
+        setTimeout(() => setButtonText("Copy link"), 3000);
+      })
+      .catch(err => console.error('Failed to copy:', err));
+  };
+
+  const copyRichContentToClipboard = (htmlContent, setButtonText) => {
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const item = new ClipboardItem({ 'text/html': blob });
+    navigator.clipboard.write([item])
+      .then(() => {
+        setButtonText("Copied!");
+        setTimeout(() => setButtonText("Copy GIF"), 3000);
+      })
+      .catch(err => console.error('Failed to copy GIF:', err));
+  };
+
   const handleOpenVideo = () => {
     const videoUrl = `https://app.screendesk.io/recordings/${props.uuid}`;
-    window.open(videoUrl, '_blank'); // Open the video URL in a new tab
+    window.open(videoUrl, '_blank');
   };
 
   return (
-    <div className="video-item-root" tabIndex="0" onClick={handleOpenVideo}>
+    <div 
+      className="video-item-root" 
+      tabIndex="0" 
+      onClick={handleOpenVideo}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="video-item">
         <div className="video-item-left">
           <div
@@ -47,18 +75,28 @@ const VideoItem = (props) => {
             <div className="video-item-info-date">{props.date}</div>
           </div>
         </div>
-        <div className="video-item-right">
-          <button
-            role="button"
-            tabIndex="0"
-            className="copy-link"
-            onClick={handleCopyLink} // Add the onClick event handler here
-          >
-            <img src={CopyLinkIcon} alt="Copy link" />
-            {copyButtonText}
-          </button>
-          {/* More actions button can be re-enabled and modified as needed */}
-        </div>
+        {isHovered && (
+          <div className="video-item-right">
+            <button
+              role="button"
+              tabIndex="0"
+              className="copy-link"
+              onClick={handleCopyLink}
+            >
+              <img src={CopyLinkIcon} alt="Copy link" />
+              {copyLinkText}
+            </button>
+            <button
+              role="button"
+              tabIndex="0"
+              className="copy-link"
+              onClick={handleCopyGif}
+            >
+              <img src={CopyLinkIcon} alt="Copy GIF" />
+              {copyGifText}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

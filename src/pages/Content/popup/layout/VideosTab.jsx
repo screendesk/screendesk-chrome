@@ -123,6 +123,7 @@ const VideosTab = () => {
                     title={video.name}
                     date={video.date}
                     thumbnail={video.thumbnail}
+                    gif={video.gif}
                     uuid={video.uuid}
                   />
                 ))
@@ -143,6 +144,7 @@ const VideosTab = () => {
                     title={video.name}
                     date={video.date}
                     thumbnail={video.thumbnail}
+                    gif={video.gif}
                     uuid={video.uuid}
                   />
                 ))
