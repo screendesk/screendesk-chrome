@@ -52,50 +52,6 @@ const PopupContainer = (props) => {
   const pillRef = useRef(null);
   const [URL, setURL] = useState("https://docs.screendesk.io/");
 
-  const checkUserAuthentication = () => {
-    // Retrieve the auth_token from chrome.storage.local
-    chrome.storage.local.get(['auth_token'], function(result) {
-      if (result.auth_token) {
-        // Auth token is found, proceed with the fetch request to check authentication status
-        // fetch('http://localhost:3001/auth_status', {
-          fetch('http://localhost:3001/auth_status', {
-          method: 'GET',
-          // no-cors mode does not allow setting headers, so we need to use cors mode
-          headers: {
-            'Authorization': `Bearer ${result.auth_token}`, // Use the retrieved auth_token
-            'Content-Type': 'application/json'
-          },
-          mode: 'cors'  })
-        .then(response => {
-          if(response.ok) {
-            console.log('User is authenticated');
-          } else {
-            chrome.runtime.sendMessage({action: "openSignInPage"})
-
-          }
-        })
-        .catch(error => console.error('Error:', error));
-      } else {
-        chrome.runtime.sendMessage({action: "openSignInPage"})
-      }
-    });
-  };  
-
-  useEffect(() => {
-    const handleMessage = (request, sender, sendResponse) => {
-      if (request.action === "popupOpened") {
-        console.log('Popup opened');
-        checkUserAuthentication();
-      }
-    };
-  
-    chrome.runtime.onMessage.addListener(handleMessage);
-  
-    checkUserAuthentication(); // Initial check on mount
-  
-    return () => chrome.runtime.onMessage.removeListener(handleMessage);
-  }, []);
-
   useEffect(() => {
     // Check chrome storage
     chrome.storage.local.get(["updatingFromOld"], function (result) {

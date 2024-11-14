@@ -65,7 +65,7 @@ var options = {
   },
 
   custom: {
-    notHMR: ["background", "contentScript", "devtools", "sandbox"],
+    notHMR: ["background", "contentScript", "devtools"],
     enableBackgroundAutoReload: true,
     enableContentScriptsAutoReload: true,
   },

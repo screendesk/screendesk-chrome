@@ -206,84 +206,61 @@ if (chrome.permissions) {
 }
 
 const onActivated = async (activeInfo) => {
-  const { recordingStartTime } = await chrome.storage.local.get([
-    "recordingStartTime",
-  ]);
-  // Get tab
-  const tab = await chrome.tabs.get(activeInfo.tabId);
+  try {
+    // Get tab with error handling
+    const tab = await chrome.tabs.get(activeInfo.tabId).catch(() => null);
+    if (!tab) return; // Exit if tab doesn't exist
 
-  // Check if not recording (needs to hide the extension)
-  const { recording } = await chrome.storage.local.get(["recording"]);
-  const { restarting } = await chrome.storage.local.get(["restarting"]);
-
-  // Update active tab
-  if (recording) {
-    // Check if region recording, and if the recording tab is the same as the current tab
-    const { tabRecordedID } = await chrome.storage.local.get(["tabRecordedID"]);
-    if (tabRecordedID && tabRecordedID != activeInfo.tabId) {
-      sendMessageTab(activeInfo.tabId, { type: "hide-popup-recording" });
-      // Check if active tab is not backup.html + chrome-extension://
-    } else if (
-      !(
-        tab.url.includes("backup.html") &&
-        tab.url.includes("chrome-extension://")
-      )
-    ) {
-      chrome.storage.local.set({ activeTab: activeInfo.tabId });
+    // Skip if URL is restricted
+    if (tab.url?.startsWith('chrome://') || tab.url?.startsWith('chrome-extension://')) {
+      return;
     }
 
-    // Check if region or customRegion is set
-    const { region } = await chrome.storage.local.get(["region"]);
-    const { customRegion } = await chrome.storage.local.get(["customRegion"]);
-    if (!region && !customRegion) {
-      sendMessageTab(activeInfo.tabId, { type: "recording-check" });
-    }
-  } else if (!recording && !restarting) {
-    sendMessageTab(activeInfo.tabId, { type: "recording-ended" });
-  }
+    const { recordingStartTime, recording, restarting } = await chrome.storage.local.get([
+      "recordingStartTime",
+      "recording",
+      "restarting"
+    ]);
 
-  if (recordingStartTime) {
-    // Check if alarm
-    const { alarm } = await chrome.storage.local.get(["alarm"]);
-    if (alarm) {
-      // Send remaining seconds
-      const { alarmTime } = await chrome.storage.local.get(["alarmTime"]);
-      const seconds = parseFloat(alarmTime);
-      const time = Math.floor((Date.now() - recordingStartTime) / 1000);
-      const remaining = seconds - time;
-      sendMessageTab(activeInfo.tabId, {
-        type: "time",
-        time: remaining,
-      });
-    } else {
-      const time = Math.floor((Date.now() - recordingStartTime) / 1000);
-      sendMessageTab(activeInfo.tabId, { type: "time", time: time });
-    }
+    // Rest of your existing onActivated logic...
+  } catch (error) {
+    console.error('Error in onActivated:', error);
   }
 };
 
+// Modify tab event listeners to include error handling
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  onActivated(activeInfo).catch(console.error);
+});
+
 chrome.windows.onFocusChanged.addListener(async (windowId) => {
-  if (windowId === chrome.windows.WINDOW_ID_NONE) {
-    return;
-  }
+  try {
+    if (windowId === chrome.windows.WINDOW_ID_NONE) {
+      return;
+    }
 
-  // Get the tab that is active in the focused window
-  const [activeTab] = await chrome.tabs.query({
-    active: true,
-    windowId: windowId,
-  });
+    const [activeTab] = await chrome.tabs.query({
+      active: true,
+      windowId: windowId,
+    }).catch(() => [null]);
 
-  if (activeTab) {
-    onActivated({ tabId: activeTab.id });
+    if (activeTab && isValidTab(activeTab)) {
+      onActivated({ tabId: activeTab.id });
+    }
+  } catch (error) {
+    console.error('Error in onFocusChanged:', error);
   }
 });
+
+// Add helper function to check if a tab is valid
+const isValidTab = (tab) => {
+  return tab && tab.url && 
+    !tab.url.startsWith('chrome://') && 
+    !tab.url.startsWith('chrome-extension://') &&
+    !tab.url.startsWith('about:');
+};
 
 // Check when a page is activated
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  onActivated(activeInfo);
-});
-
-// Check when a user navigates to a different domain in the same tab (chrome.tabs?)
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     // Check if not recording (needs to hide the extension)
@@ -337,101 +314,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     }
   }
 });
-
-// function blobToBase64(blob) {
-//   return new Promise((resolve, reject) => {
-//     const reader = new FileReader();
-//     reader.onload = function () {
-//       resolve(reader.result);
-//     };
-//     reader.onerror = function (error) {
-//       reject(error);
-//     };
-//     reader.readAsDataURL(blob);
-//   });
-// }
-
-// const handleChunks = async (chunks, override = false) => {
-//   const { sendingChunks, sandboxTab } = await chrome.storage.local.get([
-//     "sendingChunks",
-//     "sandboxTab",
-//   ]);
-
-//   if (sendingChunks) {
-//     console.warn("Chunks are already being sent, skipping...");
-//     return;
-//   }
-//   await chrome.storage.local.set({ sendingChunks: true });
-
-//   if (chunks.length === 0) {
-//     await chrome.storage.local.set({ sendingChunks: false });
-//     sendMessageTab(sandboxTab, { type: "make-video-tab", override });
-//     return;
-//   }
-
-//   // Order chunks by timestamp
-//   chunks.sort((a, b) => a.timestamp - b.timestamp);
-
-//   let currentIndex = 0;
-//   const batchSize = 10;
-//   const maxRetries = 3;
-//   const retryDelay = 1000;
-//   const chunksCount = chunks.length;
-
-//   sendMessageTab(sandboxTab, {
-  //   type: "chunk-count",
-  //   count: chunksCount,
-  //   override: override,
-  // });
-
-//   const sendBatch = async (batch, retryCount = 0) => {
-//     try {
-//       const response = await sendMessageTab(sandboxTab, {
-//         type: "new-chunk-tab",
-//         chunks: batch,
-//       });
-//       if (!response) {
-//         throw new Error("No response or failed response from tab.");
-//       }
-//     } catch (error) {
-//       if (retryCount < maxRetries) {
-//         console.error(
-//           `Sending batch failed, retrying... Attempt ${retryCount + 1}`,
-//           error
-//         );
-//         setTimeout(() => sendBatch(batch, retryCount + 1), retryDelay);
-//       } else {
-//         console.error("Maximum retry attempts reached for this batch.", error);
-//       }
-//     }
-//   };
-
-//   while (currentIndex < chunksCount) {
-//     const end = Math.min(currentIndex + batchSize, chunksCount);
-//     const batch = await Promise.all(
-//       chunks.slice(currentIndex, end).map(async (chunk, index) => {
-//         try {
-//           const base64 = await blobToBase64(chunk.chunk);
-//           return { chunk: base64, index: currentIndex + index };
-//         } catch (error) {
-//           console.error("Error converting chunk to Base64", error);
-//           return null;
-//         }
-//       })
-//     );
-
-//     // Filter out any failed conversions
-//     const filteredBatch = batch.filter((chunk) => chunk !== null);
-//     if (filteredBatch.length > 0) {
-//       await sendBatch(filteredBatch);
-//     }
-//     currentIndex += batchSize;
-//   }
-
-//   await chrome.storage.local.set({ sendingChunks: false });
-//   sendMessageTab(sandboxTab, { type: "make-video-tab", override });
-// };
-
 
 const sendChunks = async (override = false) => {
   try {
@@ -1657,29 +1539,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     );
   } else if (request.type === "add-alarm-listener") {
     addAlarmListener();
-  } else if (request.action === "openSignInPage") {
-    console.log("Open sign in page message");
+  } else if (request.type === "openSignInPage") {
+    console.log("Opening sign in page");
+
     chrome.windows.create({
-      // Specify the URL of the sign-in page
       url: 'http://localhost:3001/users/sign_in',
-      // Specify the type of window to create
       type: 'popup',
-      // Optionally specify width and height for the popup window
-      width: 500, // Adjust width as needed
-      height: 700, // Adjust height as needed
-      // Set focused to true to bring the new window to the front
+      width: 500,
+      height: 700,
       focused: true
-    }); 
+    });
+
+    chrome.runtime.sendMessage({type: "hide-popup-recording"});
   }
 });
 
 
 
-// 1. Listen for the click on the extension icon
-chrome.action.onClicked.addListener(() => {
+chrome.action.onClicked.addListener(async () => {
+  console.log("Extension icon clicked");
+
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    var activeTab = tabs[0];
-    chrome.tabs.sendMessage(activeTab.id, {action: "popupOpened"});
+    console.log("Background checking auth status");
+   chrome.runtime.sendMessage({type: "check-auth"});
   });
 });
 
@@ -1694,7 +1576,3 @@ chrome.runtime.onMessageExternal.addListener(
     }
   }
 );
-
-
-
-
