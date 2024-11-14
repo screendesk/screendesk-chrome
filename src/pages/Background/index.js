@@ -1,8 +1,5 @@
-import saveToDrive from "./modules/saveToDrive";
 import fixWebmDuration from "fix-webm-duration";
 import { default as fixWebmDurationFallback } from "webm-duration-fix";
-
-
 
 import {
   sendMessageTab,
@@ -500,8 +497,8 @@ const sendChunks = async (override = false) => {
     // Upload the fixed Blob to the server.
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
-    // const response = await fetch("https://app.screendesk.io/chrome/upload", {
-    const response = await fetch("https://app.screendesk.io/chrome/upload", {
+    // const response = await fetch("http://localhost:3001/chrome/upload", {
+    const response = await fetch("http://localhost:3001/chrome/upload", {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${auth_token}`,
@@ -516,8 +513,8 @@ const sendChunks = async (override = false) => {
     // Handle the response and create a new tab with the recording URL.
     const data = await response.json();
     console.log("Data", data);
-    // let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
-    let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
+    // let url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    let url = "http://localhost:3001/recordings/" + data.recording_uuid;
     chrome.tabs.create({ url: url });
 
     // Update local storage with the recording UUID.
@@ -563,37 +560,6 @@ const stopRecording = async () => {
 
   discardOffscreenDocuments();
 };
-
-// const forceProcessing = async () => {
-//   // Need to create a new sandbox tab
-//   let editor_url = "editor.html";
-
-//   // Get sandbox tab
-//   const { sandboxTab } = await chrome.storage.local.get(["sandboxTab"]);
-
-//   chrome.tabs.create(
-//     {
-//       url: editor_url,
-//       active: true,
-//     },
-//     (tab) => {
-//       chrome.tabs.onUpdated.addListener(function _(
-//         tabId,
-//         changeInfo,
-//         updatedTab
-//       ) {
-//         if (tabId === tab.id && changeInfo.status === "complete") {
-//           chrome.tabs.onUpdated.removeListener(_);
-//           // Close the existing sandbox tab
-//           removeTab(sandboxTab);
-//           chrome.storage.local.set({ sandboxTab: tab.id });
-
-//           sendChunks(true);
-//         }
-//       });
-//     }
-//   );
-// };
 
 // For some reason without this the service worker doesn't always work
 chrome.runtime.onStartup.addListener(() => {
@@ -1034,11 +1000,6 @@ const offscreenDocument = async (request, tabId = null) => {
   }
 };
 
-const savedToDrive = async () => {
-  const { sandboxTab } = await chrome.storage.local.get(["sandboxTab"]);
-  sendMessageTab(sandboxTab, { type: "saved-to-drive" });
-};
-
 const discardOffscreenDocuments = async () => {
   // Try doing (maybe offscreen isn't available)
   try {
@@ -1078,7 +1039,6 @@ const executeScripts = async () => {
 
   await Promise.all(executeScriptPromises);
 };
-
 
 // TODO: update the setuninstall url
 // On first install open setup.html
@@ -1290,67 +1250,6 @@ const checkRestore = async (sendResponse) => {
     return;
   }
   sendResponse({ restore: true });
-};
-
-const base64ToUint8Array = (base64) => {
-  const dataUrlRegex = /^data:(.*?);base64,/;
-  const matches = base64.match(dataUrlRegex);
-  if (matches !== null) {
-    // Base64 is a data URL
-    const mimeType = matches[1];
-    const binaryString = atob(base64.slice(matches[0].length));
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return new Blob([bytes], { type: mimeType });
-  } else {
-    // Base64 is a regular string
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return new Blob([bytes], { type: "video/webm" });
-  }
-};
-
-const handleSaveToDrive = async (sendResponse, request, fallback = false) => {
-  if (!fallback) {
-    const blob = base64ToUint8Array(request.base64);
-
-    // Specify the desired file name
-    const fileName = request.title + ".mp4";
-
-    // Call the saveToDrive function
-    saveToDrive(blob, fileName, sendResponse).then(() => {
-      savedToDrive();
-    });
-  } else {
-    const chunks = [];
-    await chunksStore.iterate((value, key) => {
-      chunks.push(value);
-    });
-
-    // Build the video from chunks
-    let array = [];
-    let lastTimestamp = 0;
-    for (const chunk of chunks) {
-      // Check if chunk timestamp is smaller than last timestamp, if so, skip
-      if (chunk.timestamp < lastTimestamp) {
-        continue;
-      }
-      lastTimestamp = chunk.timestamp;
-      array.push(chunk.chunk);
-    }
-    const blob = new Blob(array, { type: "video/webm" });
-
-    const filename = request.title + ".webm";
-
-    saveToDrive(blob, filename, sendResponse).then(() => {
-      savedToDrive();
-    });
-  }
 };
 
 const desktopCapture = async (request) => {
@@ -1744,12 +1643,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.type === "is-pinned") {
     isPinned(sendResponse);
     return true;
-  } else if (request.type === "save-to-drive") {
-    handleSaveToDrive(sendResponse, request, false);
-    return true;
-  } else if (request.type === "save-to-drive-fallback") {
-    handleSaveToDrive(sendResponse, request, true);
-    return true;
   } else if (request.type === "resize-window") {
     resizeWindow(request.width, request.height);
   } else if (request.type === "available-memory") {
@@ -1768,7 +1661,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Open sign in page message");
     chrome.windows.create({
       // Specify the URL of the sign-in page
-      url: 'https://app.screendesk.io/users/sign_in',
+      url: 'http://localhost:3001/users/sign_in',
       // Specify the type of window to create
       type: 'popup',
       // Optionally specify width and height for the popup window

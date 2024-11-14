@@ -57,8 +57,8 @@ const PopupContainer = (props) => {
     chrome.storage.local.get(['auth_token'], function(result) {
       if (result.auth_token) {
         // Auth token is found, proceed with the fetch request to check authentication status
-        // fetch('https://app.screendesk.io/auth_status', {
-          fetch('https://app.screendesk.io/auth_status', {
+        // fetch('http://localhost:3001/auth_status', {
+          fetch('http://localhost:3001/auth_status', {
           method: 'GET',
           // no-cors mode does not allow setting headers, so we need to use cors mode
           headers: {
