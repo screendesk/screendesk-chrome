@@ -17,6 +17,8 @@ localforage.config({
   version: 1,
 });
 
+let signInWindowId = null;
+
 // Get chunks store
 const chunksStore = localforage.createInstance({
   name: "chunks",
@@ -379,8 +381,8 @@ const sendChunks = async (override = false) => {
     // Upload the fixed Blob to the server.
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
-    // const response = await fetch("http://localhost:3001/chrome/upload", {
-    const response = await fetch("http://localhost:3001/chrome/upload", {
+    // const response = await fetch("https://app.screendesk.io/chrome/upload", {
+    const response = await fetch("https://app.screendesk.io/chrome/upload", {
       method: "POST",
       headers: {
         'Authorization': `Bearer ${auth_token}`,
@@ -395,8 +397,8 @@ const sendChunks = async (override = false) => {
     // Handle the response and create a new tab with the recording URL.
     const data = await response.json();
     console.log("Data", data);
-    // let url = "http://localhost:3001/recordings/" + data.recording_uuid;
-    let url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    // let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
+    let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
     chrome.tabs.create({ url: url });
 
     // Update local storage with the recording UUID.
@@ -448,7 +450,6 @@ chrome.runtime.onStartup.addListener(() => {
   console.log(`Starting...`);
 });
 
-// Check when action button is clicked
 chrome.action.onClicked.addListener(async (tab) => {
   // Check if recording
   const { recording } = await chrome.storage.local.get(["recording"]);
@@ -505,6 +506,32 @@ chrome.action.onClicked.addListener(async (tab) => {
     sendMessageTab(activeTab.id, { type: "setup-complete" });
   }
 });
+
+chrome.action.onClicked.addListener(async () => {
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+   chrome.runtime.sendMessage({type: "check-auth"});
+  });
+});
+
+chrome.runtime.onMessageExternal.addListener(
+  function(request, sender, sendResponse) {
+    if (request.action === "authToken") {
+      // Handle the received JWT token
+      chrome.storage.local.set({auth_token: request.token}, function() {
+        console.log("JWT token stored.");
+        
+        // Close the sign in window after 4 seconds
+        setTimeout(() => {
+          if (signInWindowId) {
+            chrome.windows.remove(signInWindowId, () => {
+              signInWindowId = null;
+            });
+          }
+        }, 3000); // 4000 milliseconds = 4 seconds
+      });
+    }
+  }
+);
 
 const restartActiveTab = async () => {
   const activeTab = await getCurrentTab();
@@ -1539,40 +1566,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     );
   } else if (request.type === "add-alarm-listener") {
     addAlarmListener();
-  } else if (request.type === "openSignInPage") {
-    console.log("Opening sign in page");
-
+  } else if (request.type === "open-sign-in-page") {
     chrome.windows.create({
-      url: 'http://localhost:3001/users/sign_in',
+      url: 'https://app.screendesk.io/users/sign_in?source=chrome_extension',
       type: 'popup',
       width: 500,
       height: 700,
       focused: true
+    }, (window) => {
+      signInWindowId = window.id; // Store the window ID
     });
 
-    chrome.runtime.sendMessage({type: "hide-popup-recording"});
+    chrome.runtime.sendMessage({type: "hide-popup"});
   }
 });
-
-
-
-chrome.action.onClicked.addListener(async () => {
-  console.log("Extension icon clicked");
-
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    console.log("Background checking auth status");
-   chrome.runtime.sendMessage({type: "check-auth"});
-  });
-});
-
-
-chrome.runtime.onMessageExternal.addListener(
-  function(request, sender, sendResponse) {
-    if (request.action === "authToken") {
-      // Handle the received JWT token, e.g., store it
-      chrome.storage.local.set({auth_token: request.token}, function() {
-        console.log("JWT token stored.");
-      });
-    }
-  }
-);

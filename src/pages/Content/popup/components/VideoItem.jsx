@@ -8,7 +8,7 @@ const VideoItem = (props) => {
 
   const handleCopyLink = (event) => {
     event.stopPropagation();
-    const link = `http://localhost:3001/recordings/${props.uuid}`;
+    const link = `https://app.screendesk.io/recordings/${props.uuid}`;
     copyToClipboard(link, setCopyLinkText);
   };
 
@@ -16,7 +16,7 @@ const VideoItem = (props) => {
     event.stopPropagation();
     const htmlContent = `
       <div>
-        <a href="http://localhost:3001/recordings/${props.uuid}">
+        <a href="https://app.screendesk.io/recordings/${props.uuid}">
           <p>${props.title} - Watch Video</p>
         </a>
         <a href="${props.gif}">
@@ -48,7 +48,7 @@ const VideoItem = (props) => {
   };
 
   const handleOpenVideo = () => {
-    const videoUrl = `http://localhost:3001/recordings/${props.uuid}`;
+    const videoUrl = `https://app.screendesk.io/recordings/${props.uuid}`;
     window.open(videoUrl, '_blank');
   };
 

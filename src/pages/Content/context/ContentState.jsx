@@ -1017,10 +1017,9 @@ const ContentState = (props) => {
           ...prevContentState,
           pendingRecording: false,
         }));
-      // Screendesk: we hide the popup if the user is not authenticated
-      } else if (request.type === "hide-popup-recording") {
-        setContentState((prevContentState) => ({
-          ...prevContentState,
+    } else if (request.type === "hide-popup") {
+      setContentState((prevContentState) => ({
+        ...prevContentState,
         showPopup: false,
         showExtension: false,
       }));
@@ -1029,13 +1028,11 @@ const ContentState = (props) => {
 
       chrome.storage.local.get(['auth_token'], function(result) {
         if (result.auth_token) {
-          // Auth token is found, proceed with the fetch request to check authentication status
-          // fetch('https://app.screendesk.io/auth_status', {
-            fetch('http://localhost:3001/auth_status', {
+            fetch('https://app.screendesk.io/auth_status', {
             method: 'GET',
             // no-cors mode does not allow setting headers, so we need to use cors mode
             headers: {
-              'Authorization': `Bearer ${result.auth_token}`, // Use the retrieved auth_token
+              'Authorization': `Bearer ${result.auth_token}`, 
               'Content-Type': 'application/json'
             },
             mode: 'cors'  })
@@ -1043,14 +1040,12 @@ const ContentState = (props) => {
             if(response.ok) {
               console.log('User is authenticated');
             } else {
-              console.log("User is authenticated, sending message to close popup");
-              chrome.runtime.sendMessage({type: "openSignInPage"});
+              chrome.runtime.sendMessage({type: "open-sign-in-page"});
             }
           })
           .catch(error => console.error('Error:', error));
         } else {
-          console.log("No auth token found, sending message to open sign in page");
-            chrome.runtime.sendMessage({type: "openSignInPage"});
+            chrome.runtime.sendMessage({type: "open-sign-in-page"});
         }
       });
     }
