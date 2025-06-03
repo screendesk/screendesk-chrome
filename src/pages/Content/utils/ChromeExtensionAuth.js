@@ -4,7 +4,7 @@
  */
 class ChromeExtensionAuth {
   constructor() {
-    this.baseURL = 'https://app.screendesk.io';
+    this.baseURL = 'http://localhost:3001';
   }
 
   /**

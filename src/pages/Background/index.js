@@ -415,7 +415,7 @@ const sendChunks = async (override = false) => {
 
         try {
           console.log('Attempting to refresh access token...');
-          const response = await fetch('https://app.screendesk.io/chrome/refresh_token', {
+          const response = await fetch('http://localhost:3001/chrome/refresh_token', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -490,7 +490,7 @@ const sendChunks = async (override = false) => {
     console.log("FormData created, starting authenticated upload to server");
 
     // Use authenticated fetch with automatic token refresh
-    const response = await authHandler.authenticatedFetch("https://app.screendesk.io/chrome/upload", {
+    const response = await authHandler.authenticatedFetch("http://localhost:3001/chrome/upload", {
       method: "POST",
       body: formData,
     });
@@ -505,8 +505,8 @@ const sendChunks = async (override = false) => {
     console.log("Parsing response JSON");
     const data = await response.json();
     console.log("Response data:", data);
-    // let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
-    let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
+    // let url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    let url = "http://localhost:3001/recordings/" + data.recording_uuid;
     console.log("Opening new tab with URL:", url);
     chrome.tabs.create({ url: url });
 
@@ -1734,7 +1734,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     addAlarmListener();
   } else if (request.type === "open-sign-in-page") {
     chrome.windows.create({
-      url: 'https://app.screendesk.io/users/sign_in?source=chrome_extension',
+      url: 'http://localhost:3001/users/sign_in?source=chrome_extension',
       type: 'popup',
       width: 500,
       height: 700,

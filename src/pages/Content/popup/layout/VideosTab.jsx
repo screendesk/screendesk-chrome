@@ -45,10 +45,10 @@ const VideosTab = () => {
 
     switch (activeTab) {
       case "myVideos":
-        endpoint = `https://app.screendesk.io/chrome/library?query=${encodeURIComponent(query)}`;
+        endpoint = `http://localhost:3001/chrome/library?query=${encodeURIComponent(query)}`;
         break;
       case "teamVideos":
-        endpoint = `https://app.screendesk.io/chrome/library/team_videos?query=${encodeURIComponent(query)}`;
+        endpoint = `http://localhost:3001/chrome/library/team_videos?query=${encodeURIComponent(query)}`;
         break;
     }
 
