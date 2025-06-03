@@ -44,7 +44,7 @@ const startAfterCountdown = async () => {
 // DONE
 // IMPORTANT
 // TODO: this handles the countdown. Updates the page that is pinned.
-// This needs to be changed if I want to open the 
+// This needs to be changed if I want to open the
 const resetActiveTab = async () => {
   const { activeTab } = await chrome.storage.local.get(["activeTab"]);
 
@@ -256,8 +256,8 @@ chrome.windows.onFocusChanged.addListener(async (windowId) => {
 
 // Add helper function to check if a tab is valid
 const isValidTab = (tab) => {
-  return tab && tab.url && 
-    !tab.url.startsWith('chrome://') && 
+  return tab && tab.url &&
+    !tab.url.startsWith('chrome://') &&
     !tab.url.startsWith('chrome-extension://') &&
     !tab.url.startsWith('about:');
 };
@@ -318,93 +318,205 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 });
 
 const sendChunks = async (override = false) => {
+  console.log("sendChunks started with override:", override);
   try {
     const chunks = [];
+    console.log("Preparing to iterate over chunks store");
     // Iterate over the chunks stored and collect them into an array.
     await chunksStore.iterate((value, key) => {
+      console.log(`Processing chunk with key: ${key}, timestamp: ${value.timestamp}`);
       chunks.push(value);
     });
 
+    console.log(`Total chunks found: ${chunks.length}`);
     if (chunks.length === 0) {
+      console.log("No chunks found, returning early");
       return;
     }
 
     // Sort the chunks by their timestamp to ensure correct order.
+    console.log("Sorting chunks by timestamp");
     chunks.sort((a, b) => a.timestamp - b.timestamp);
+    console.log("Chunks sorted, first timestamp:", chunks[0].timestamp, "last timestamp:", chunks[chunks.length-1].timestamp);
 
     // Filter and process chunks to prepare for blob creation.
+    console.log("Filtering duplicate chunks");
     const filteredChunks = chunks
       .filter((chunk, index, array) => {
-        return index === 0 || chunk.timestamp > array[index - 1].timestamp;
+        const isValid = index === 0 || chunk.timestamp > array[index - 1].timestamp;
+        if (!isValid) {
+          console.log(`Filtering out duplicate chunk at index ${index} with timestamp ${chunk.timestamp}`);
+        }
+        return isValid;
       })
-      .map(chunk => chunk.chunk);
+      .map(chunk => {
+        console.log(`Mapping chunk with timestamp ${chunk.timestamp}`);
+        return chunk.chunk;
+      });
 
+    console.log(`After filtering: ${filteredChunks.length} chunks remain`);
     if (filteredChunks.length === 0) {
+      console.error('No valid video chunks to upload after filtering');
       throw new Error('No valid video chunks to upload.');
     }
 
     // Create a Blob from the filtered chunks.
+    console.log("Creating blob from filtered chunks");
     const blob = new Blob(filteredChunks, { type: "video/webm; codecs=vp8, opus" });
+    console.log(`Blob created, size: ${blob.size} bytes`);
 
     // Check the OS type
     const isWindows10 = navigator.userAgent.includes("Windows NT 10.0");
+    console.log("Is Windows 10:", isWindows10);
 
     // Retrieve the recordingDuration
+    console.log("Getting recording duration from storage");
     const { recordingDuration } = await chrome.storage.local.get("recordingDuration");
+    console.log("Recording duration:", recordingDuration);
 
     let fixedBlob;
     if (recordingDuration && recordingDuration > 0) {
+      console.log("Valid recording duration found, fixing webm duration");
       if (!isWindows10) {
+        console.log("Using standard fixWebmDuration");
         // Assuming fixWebmDuration is properly defined elsewhere
         fixedBlob = await fixWebmDuration(blob, parseInt(recordingDuration));
       } else {
+        console.log("Using fallback fixWebmDurationFallback for Windows 10");
         // Fallback method if on Windows 10
         fixedBlob = await fixWebmDurationFallback(blob, { type: "video/webm; codecs=vp8, opus" });
       }
+      console.log("Webm duration fixed");
     } else {
+      console.log("No valid duration, using original blob");
       fixedBlob = blob; // Use the original blob if duration is not specified or invalid
     }
+    console.log(`Fixed blob size: ${fixedBlob.size} bytes`);
 
-    // Handle authentication token retrieval
-    const { auth_token } = await new Promise((resolve, reject) => {
-      chrome.storage.local.get(['auth_token'], function(result) {
-        if (chrome.runtime.lastError) {
-          reject(chrome.runtime.lastError);
-        } else if (result.auth_token) {
-          resolve(result);
-        } else {
-          reject(new Error('Auth token not found'));
+    // Create a simple auth handler for background script
+    const authHandler = {
+      async getAccessToken() {
+        const result = await chrome.storage.local.get(['accessToken']);
+        return result.accessToken;
+      },
+
+      async getRefreshToken() {
+        const result = await chrome.storage.local.get(['refreshToken']);
+        return result.refreshToken;
+      },
+
+      async refreshAccessToken() {
+        const refreshToken = await this.getRefreshToken();
+
+        if (!refreshToken) {
+          console.error('No refresh token available');
+          return false;
         }
-      });
-    });
+
+        try {
+          console.log('Attempting to refresh access token...');
+          const response = await fetch('https://app.screendesk.io/chrome/refresh_token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              refresh_token: refreshToken
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Token refresh successful');
+            await chrome.storage.local.set({
+              accessToken: data.access_token,
+              refreshToken: data.refresh_token,
+              tokenTimestamp: Date.now()
+            });
+            return true;
+          } else {
+            console.error('Token refresh failed:', response.status);
+            return false;
+          }
+        } catch (error) {
+          console.error('Token refresh error:', error);
+          return false;
+        }
+      },
+
+      async authenticatedFetch(url, options = {}) {
+        const accessToken = await this.getAccessToken();
+
+        if (!accessToken) {
+          throw new Error('No access token available');
+        }
+
+        // Add auth header
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${accessToken}`
+        };
+
+        console.log('Making authenticated request to:', url);
+        let response = await fetch(url, options);
+
+        // If unauthorized, try to refresh token
+        if (response.status === 401) {
+          console.log('Received 401, attempting token refresh...');
+          const refreshed = await this.refreshAccessToken();
+
+          if (refreshed) {
+            // Retry with new token
+            const newAccessToken = await this.getAccessToken();
+            options.headers['Authorization'] = `Bearer ${newAccessToken}`;
+            console.log('Retrying request with new token...');
+            response = await fetch(url, options);
+          } else {
+            // Refresh failed, clear tokens
+            console.log('Token refresh failed, clearing tokens');
+            await chrome.storage.local.remove(['accessToken', 'refreshToken', 'tokenTimestamp', 'auth_token']);
+            throw new Error('Authentication required');
+          }
+        }
+
+        return response;
+      }
+    };
 
     // Upload the fixed Blob to the server.
+    console.log("Creating FormData for upload");
     const formData = new FormData();
     formData.append("recording[file]", fixedBlob, "video.webm");
-    // const response = await fetch("https://app.screendesk.io/chrome/upload", {
-    const response = await fetch("https://app.screendesk.io/chrome/upload", {
+    console.log("FormData created, starting authenticated upload to server");
+
+    // Use authenticated fetch with automatic token refresh
+    const response = await authHandler.authenticatedFetch("https://app.screendesk.io/chrome/upload", {
       method: "POST",
-      headers: {
-        'Authorization': `Bearer ${auth_token}`,
-      },
       body: formData,
     });
+    console.log("Upload response status:", response.status);
 
     if (!response.ok) {
+      console.error(`HTTP error during upload! status: ${response.status}`);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     // Handle the response and create a new tab with the recording URL.
+    console.log("Parsing response JSON");
     const data = await response.json();
-    console.log("Data", data);
+    console.log("Response data:", data);
     // let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
     let url = "https://app.screendesk.io/recordings/" + data.recording_uuid;
+    console.log("Opening new tab with URL:", url);
     chrome.tabs.create({ url: url });
 
     // Update local storage with the recording UUID.
+    console.log("Saving recording UUID to storage:", data.recording_uuid);
     chrome.storage.local.set({ recording_uuid: data.recording_uuid });
+    console.log("sendChunks completed successfully");
   } catch (error) {
     console.error("Error in sendChunks:", error);
+    console.error("Error stack:", error.stack);
   }
 };
 
@@ -429,19 +541,15 @@ const stopRecording = async () => {
   handleRecordingComplete();
 
   sendChunks();
-
-
   chrome.action.setIcon({ path: "assets/icon-34.png" });
 
-  // Check if wasRegion is set
+  // Rest of the existing code...
   const { wasRegion } = await chrome.storage.local.get(["wasRegion"]);
   if (wasRegion) {
     chrome.storage.local.set({ wasRegion: false, region: true });
   }
 
-  // Cancel any alarms
   chrome.alarms.clear("recording-alarm");
-
   discardOffscreenDocuments();
 };
 
@@ -451,7 +559,7 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 chrome.action.onClicked.addListener(async (tab) => {
-  // Check if recording
+  // Check if recording first
   const { recording } = await chrome.storage.local.get(["recording"]);
   if (recording) {
     stopRecording();
@@ -467,34 +575,51 @@ chrome.action.onClicked.addListener(async (tab) => {
         chrome.storage.local.set({ activeTab: tab.id });
       }
     });
-  } else {
-    // Check if it's possible to inject into content (not a chrome:// page, new tab, etc)
-    if (
-      !(
-        (navigator.onLine === false &&
-          !tab.url.includes("/playground.html") &&
-          !tab.url.includes("/setup.html")) ||
-        tab.url.startsWith("chrome://") ||
-        (tab.url.startsWith("chrome-extension://") &&
-          !tab.url.includes("/playground.html") &&
-          !tab.url.includes("/setup.html"))
-      ) &&
-      !tab.url.includes("stackoverflow.com/") &&
-      !tab.url.includes("chrome.google.com/webstore") &&
-      !tab.url.includes("chromewebstore.google.com")
-    ) {
-      sendMessageTab(tab.id, { type: "toggle-popup" });
+    return; // Exit early when recording
+  }
+
+  // Check if it's possible to inject into content (not a chrome:// page, new tab, etc)
+  const canInjectContent = !(
+    (navigator.onLine === false &&
+      !tab.url.includes("/playground.html") &&
+      !tab.url.includes("/setup.html")) ||
+    tab.url.startsWith("chrome://") ||
+    (tab.url.startsWith("chrome-extension://") &&
+      !tab.url.includes("/playground.html") &&
+      !tab.url.includes("/setup.html"))
+  ) &&
+  !tab.url.includes("stackoverflow.com/") &&
+  !tab.url.includes("chrome.google.com/webstore") &&
+  !tab.url.includes("chromewebstore.google.com");
+
+  if (canInjectContent) {
+    // Valid tab - check if extension is currently visible
+    sendMessageTab(tab.id, { type: "check-extension-visibility" }, (response) => {
+      if (response && response.isVisible) {
+        // Extension is visible, just hide it
+        sendMessageTab(tab.id, { type: "hide-extension" });
+      } else {
+        // Extension is hidden, set active tab and check auth first before showing
+        chrome.storage.local.set({ activeTab: tab.id });
+        sendMessageTab(tab.id, { type: "check-auth-and-show" });
+      }
+    }, () => {
+      // Content script not available, set active tab and check auth
       chrome.storage.local.set({ activeTab: tab.id });
-    } else {
-      chrome.tabs
-        .create({
-          url: "playground.html",
-          active: true,
-        })
-        .then((tab) => {
-          chrome.storage.local.set({ activeTab: tab.id });
-        });
-    }
+      chrome.runtime.sendMessage({type: "check-auth-before-show"});
+    });
+  } else {
+    // Invalid tab - create playground tab and check auth
+    chrome.tabs
+      .create({
+        url: "playground.html",
+        active: true,
+      })
+      .then((newTab) => {
+        chrome.storage.local.set({ activeTab: newTab.id });
+        // Check auth before showing extension in the new tab
+        chrome.runtime.sendMessage({type: "check-auth-before-show"});
+      });
   }
 
   const { firstTime } = await chrome.storage.local.get(["firstTime"]);
@@ -507,27 +632,68 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 });
 
-chrome.action.onClicked.addListener(async () => {
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-   chrome.runtime.sendMessage({type: "check-auth"});
-  });
-});
-
 chrome.runtime.onMessageExternal.addListener(
   function(request, sender, sendResponse) {
     if (request.action === "authToken") {
-      // Handle the received JWT token
-      chrome.storage.local.set({auth_token: request.token}, function() {
-        console.log("JWT token stored.");
-        
-        // Close the sign in window after 4 seconds
+      // Handle the old single token format for backward compatibility
+      console.log("Received old format auth token from external:", request.token);
+      console.log("Token type:", typeof request.token);
+      console.log("Token length:", request.token ? request.token.length : 'N/A');
+      console.log("Token preview:", request.token ? request.token.substring(0, 20) + '...' : 'N/A');
+
+      chrome.storage.local.set({
+        accessToken: request.token,
+        // Clear old auth_token if it exists
+        auth_token: null
+      }, function() {
+        console.log("Legacy token stored as accessToken.");
+
+        // Close the sign in window after 3 seconds
         setTimeout(() => {
           if (signInWindowId) {
             chrome.windows.remove(signInWindowId, () => {
               signInWindowId = null;
             });
           }
-        }, 3000); // 4000 milliseconds = 4 seconds
+        }, 3000);
+
+        // After successful authentication, show the extension interface
+        chrome.runtime.sendMessage({type: "show-extension-after-auth"});
+      });
+    } else if (request.action === "authTokens") {
+      // Handle the new dual token format
+      console.log("Received access and refresh tokens from external");
+      console.log("Access token:", request.accessToken ? request.accessToken.substring(0, 20) + '...' : 'N/A');
+      console.log("Refresh token:", request.refreshToken ? request.refreshToken.substring(0, 20) + '...' : 'N/A');
+      console.log("Access token length:", request.accessToken ? request.accessToken.length : 'N/A');
+      console.log("Refresh token length:", request.refreshToken ? request.refreshToken.length : 'N/A');
+
+      chrome.storage.local.set({
+        accessToken: request.accessToken,
+        refreshToken: request.refreshToken,
+        tokenTimestamp: Date.now(),
+        // Clear old auth_token if it exists
+        auth_token: null
+      }, function() {
+        console.log("Access and refresh tokens stored successfully.");
+
+        // Verify the tokens were stored correctly
+        chrome.storage.local.get(['accessToken', 'refreshToken'], function(result) {
+          console.log("Verification - stored access token:", result.accessToken ? result.accessToken.substring(0, 20) + '...' : 'N/A');
+          console.log("Verification - stored refresh token:", result.refreshToken ? result.refreshToken.substring(0, 20) + '...' : 'N/A');
+        });
+
+        // Close the sign in window after 3 seconds
+        setTimeout(() => {
+          if (signInWindowId) {
+            chrome.windows.remove(signInWindowId, () => {
+              signInWindowId = null;
+            });
+          }
+        }, 3000);
+
+        // After successful authentication, show the extension interface
+        chrome.runtime.sendMessage({type: "show-extension-after-auth"});
       });
     }
   }
@@ -580,7 +746,7 @@ const handleDismiss = async () => {
   chrome.action.setIcon({ path: "assets/icon-34.png" });
 };
 
-// Need to make sure we don't open the editor.html 
+// Need to make sure we don't open the editor.html
 const handleRestart = async () => {
   chrome.storage.local.set({ restarting: true });
 
@@ -1577,6 +1743,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       signInWindowId = window.id; // Store the window ID
     });
 
-    chrome.runtime.sendMessage({type: "hide-popup"});
+    // Don't immediately hide the popup - wait for authentication to complete
+    // chrome.runtime.sendMessage({type: "hide-popup"});
+  } else if (request.type === "check-auth-before-show") {
+    // This is the new auth check that only happens when extension is hidden
+    chrome.runtime.sendMessage({type: "check-auth-and-show"});
   }
 });

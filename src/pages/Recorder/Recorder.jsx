@@ -106,14 +106,21 @@ const Recorder = () => {
 
       // List all mimeTypes
       const mimeTypes = [
-        "video/webm;codecs=vp8,opus",
-        "video/webm;codecs=vp8",
-        "video/webm",
-        // It bugs for the translation when using this
-        "video/webm;codecs=avc1",
+        // "video/webm;codecs=vp8,opus",
+        // "video/webm;codecs=vp8",
+        // "video/webm",
+        // // It bugs for the translation when using this
+        // "video/webm;codecs=avc1",
         "video/webm;codecs=vp9,opus",
-        "video/webm;codecs=vp9",
+        // "video/webm;codecs=vp9",
+        // "video/webm;codecs=h264",
+        // "video/webm;codecs=vp9,opus",
+        // "video/webm;codecs=avc1",
+        // "video/webm;codecs=vp8,opus",
+        // "video/webm;codecs=vp9",
+        "video/webm;codecs=vp8",
         "video/webm;codecs=h264",
+        "video/webm",
       ];
 
       // Check if the browser supports any of the mimeTypes, make sure to select the first one that is supported from the list
@@ -651,6 +658,7 @@ const Recorder = () => {
       } else if (request.type === "restart-recording-tab") {
         restartRecording();
       } else if (request.type === "stop-recording-tab") {
+        console.log("stop-recording-tab in recorder");
         stopRecording();
       } else if (request.type === "set-mic-active-tab") {
         setMic(request);

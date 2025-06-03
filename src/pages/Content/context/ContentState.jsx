@@ -7,6 +7,8 @@ import React, {
   useMemo,
 } from "react";
 
+import ChromeExtensionAuth from "../utils/ChromeExtensionAuth";
+
 // Shortcuts
 import Shortcuts from "../shortcuts/Shortcuts";
 
@@ -16,6 +18,9 @@ export const contentStateContext = createContext();
 const ContentState = (props) => {
   const [timer, setTimer] = React.useState(0);
   const contentStateRef = useRef();
+
+  // Initialize authentication handler
+  const authHandler = useRef(new ChromeExtensionAuth()).current;
   const [URL, setURL] = useState(
     "https://help.screendesk.io/getting-started/77KizPC8MHVGfpKpqdux9D/why-does-screendesk-ask-for-permissions/9AAE8zJ6iiUtCAtjn4SUT1"
   );
@@ -842,6 +847,8 @@ const ContentState = (props) => {
     }
   }, [contentState.hideToolbar, contentState.hideUI]);
 
+
+
   const onMessage = useCallback(
     (request, sender, sendResponse) => {
       if (request.type === "time") {
@@ -1010,7 +1017,7 @@ const ContentState = (props) => {
           }));
           //checkRecording(sender.tab.id);
           updateFromStorage(false, senderId);
-        
+
       }
       } else if (request.type === "stop-pending") {
         setContentState((prevContentState) => ({
@@ -1023,34 +1030,50 @@ const ContentState = (props) => {
         showPopup: false,
         showExtension: false,
       }));
-    } else if (request.type === "check-auth") {
-      console.log("ContentState checking auth status");
+    } else if (request.type === "check-extension-visibility") {
+      // Return current extension visibility state
+      if (sendResponse) {
+        sendResponse({ isVisible: contentStateRef.current.showExtension });
+      }
+      return true; // Keep message channel open for async response
+    } else if (request.type === "hide-extension") {
+      // Hide the extension without auth check
+      setContentState((prevContentState) => ({
+        ...prevContentState,
+        showExtension: false,
+        showPopup: false,
+      }));
+    } else if (request.type === "check-auth-and-show") {
+      console.log("ContentState checking auth status before showing extension");
 
-      chrome.storage.local.get(['auth_token'], function(result) {
-        if (result.auth_token) {
-            fetch('https://app.screendesk.io/auth_status', {
-            method: 'GET',
-            // no-cors mode does not allow setting headers, so we need to use cors mode
-            headers: {
-              'Authorization': `Bearer ${result.auth_token}`, 
-              'Content-Type': 'application/json'
-            },
-            mode: 'cors'  })
-          .then(response => {
-            if(response.ok) {
-              console.log('User is authenticated');
-            } else {
-              chrome.runtime.sendMessage({type: "open-sign-in-page"});
-            }
-          })
-          .catch(error => console.error('Error:', error));
+      // Use the new authentication handler
+      authHandler.checkAuthStatus().then(isAuthenticated => {
+        if (isAuthenticated) {
+          console.log('User is authenticated, showing extension');
+          // Show the extension interface since user is authenticated
+          setContentState((prevContentState) => ({
+            ...prevContentState,
+            showPopup: true,
+            showExtension: true,
+          }));
         } else {
-            chrome.runtime.sendMessage({type: "open-sign-in-page"});
+          console.log('User is not authenticated, opening sign-in page');
+          authHandler.redirectToAuth();
         }
+      }).catch(error => {
+        console.error('Error checking auth status:', error);
+        authHandler.redirectToAuth();
       });
+    } else if (request.type === "show-extension-after-auth") {
+      console.log("Showing extension after successful authentication");
+      setContentState((prevContentState) => ({
+        ...prevContentState,
+        showPopup: true,
+        showExtension: true,
+      }));
     }
     },
-    [contentStateRef.current, contentState]
+    [contentStateRef.current, contentState, authHandler]
   );
 
   useEffect(() => {

@@ -1032,5 +1032,13 @@
   "permissionsModalReview": {
     "message": "Review permissions",
     "description": "Review permissions button"
+  },
+  "processingRecordingTitle": {
+    "message": "Processing Recording",
+    "description": "Title shown when recording is being processed"
+  },
+  "processingRecordingDescription": {
+    "message": "A new tab will open once your recording has been processed.",
+    "description": "Description shown when recording is being processed"
   }
 }
