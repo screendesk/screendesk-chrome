@@ -106,18 +106,10 @@ const Recorder = () => {
 
       // List all mimeTypes
       const mimeTypes = [
-        // "video/webm;codecs=vp8,opus",
-        // "video/webm;codecs=vp8",
-        // "video/webm",
-        // // It bugs for the translation when using this
-        // "video/webm;codecs=avc1",
+        "video/webm;codecs=avc1",
+        "video/webm;codecs=vp8,opus",
         "video/webm;codecs=vp9,opus",
-        // "video/webm;codecs=vp9",
-        // "video/webm;codecs=h264",
-        // "video/webm;codecs=vp9,opus",
-        // "video/webm;codecs=avc1",
-        // "video/webm;codecs=vp8,opus",
-        // "video/webm;codecs=vp9",
+        "video/webm;codecs=vp9",
         "video/webm;codecs=vp8",
         "video/webm;codecs=h264",
         "video/webm",
@@ -209,7 +201,7 @@ const Recorder = () => {
     const handleDataAvailable = async (e) => {
       checkMaxMemory();
 
-      if (e.data.size > 0 && e.timecode) {
+      if (e.data.size > 0 && (e.timecode != null || e.timecode != undefined)) {
         try {
           const timestamp = e.timecode;
           if (hasChunks.current === false) {
@@ -658,7 +650,6 @@ const Recorder = () => {
       } else if (request.type === "restart-recording-tab") {
         restartRecording();
       } else if (request.type === "stop-recording-tab") {
-        console.log("stop-recording-tab in recorder");
         stopRecording();
       } else if (request.type === "set-mic-active-tab") {
         setMic(request);
