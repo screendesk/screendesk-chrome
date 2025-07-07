@@ -92,7 +92,7 @@ const RecorderOffscreen = () => {
 
       // List all mimeTypes
       const mimeTypes = [
-        "video/webm;codecs=avc1",
+        // "video/webm;codecs=avc1",
         "video/webm;codecs=vp8,opus",
         "video/webm;codecs=vp9,opus",
         "video/webm;codecs=vp9",

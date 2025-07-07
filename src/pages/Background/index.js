@@ -317,6 +317,226 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
+// Direct video reconstruction functions
+const getChunksForReconstruction = async () => {
+  const chunks = [];
+  await chunksStore.iterate((value, key) => {
+    chunks.push(value);
+  });
+
+  // Sort by index to ensure proper order
+  chunks.sort((a, b) => a.index - b.index);
+  console.log(`[BACKGROUND] Retrieved ${chunks.length} chunks for reconstruction`);
+  return chunks;
+};
+
+const reconstructVideoInBackground = async () => {
+  console.log("[BACKGROUND] Starting direct video reconstruction");
+
+  // Get all chunks from IndexedDB
+  const chunks = await getChunksForReconstruction();
+
+  if (chunks.length === 0) {
+    throw new Error('No chunks found for reconstruction');
+  }
+
+  console.log(`[BACKGROUND] Found ${chunks.length} chunks for reconstruction`);
+
+  // Extract blob data from chunks (they're already Blob objects)
+  const blobChunks = chunks.map(chunk => chunk.chunk);
+
+  // Create initial WebM blob
+  const rawBlob = new Blob(blobChunks, {
+    type: "video/webm; codecs=vp8, opus",
+  });
+
+  console.log(`[BACKGROUND] Raw video blob created, size: ${rawBlob.size} bytes`);
+
+  return rawBlob;
+};
+
+const fixVideoDurationInBackground = async (rawBlob) => {
+  const { recordingDuration } = await chrome.storage.local.get("recordingDuration");
+
+  if (!recordingDuration || recordingDuration <= 0) {
+    console.log("[BACKGROUND] No duration info, returning raw blob");
+    return rawBlob;
+  }
+
+  console.log(`[BACKGROUND] Fixing duration: ${recordingDuration}ms`);
+
+  // Check if Windows 10
+  const isWindows10 = navigator.userAgent.match(/Windows NT 10.0/);
+
+  if (!isWindows10) {
+    // Use standard fix-webm-duration
+    return new Promise((resolve, reject) => {
+      fixWebmDuration(rawBlob, recordingDuration, (fixedWebm) => {
+        console.log("[BACKGROUND] Duration fixed successfully");
+        resolve(fixedWebm);
+      }, { logger: false });
+    });
+  } else {
+    // Use fallback for Windows 10
+    const fixedWebm = await fixWebmDurationFallback(rawBlob, {
+      type: "video/webm; codecs=vp8, opus",
+    });
+    console.log("[BACKGROUND] Duration fixed with fallback");
+    return fixedWebm;
+  }
+};
+
+const uploadVideoBlob = async (blob) => {
+  console.log("[BACKGROUND] Starting video upload to Screendesk");
+
+  // Simple auth handler for background script
+  const getAccessToken = async () => {
+    const result = await chrome.storage.local.get(['accessToken']);
+    return result.accessToken;
+  };
+
+  const refreshAccessToken = async () => {
+    const result = await chrome.storage.local.get(['refreshToken']);
+    const refreshToken = result.refreshToken;
+
+    if (!refreshToken) {
+      console.error('No refresh token available');
+      return false;
+    }
+
+    try {
+      console.log('Attempting to refresh access token...');
+      const response = await fetch('http://localhost:3001/chrome/refresh_token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          refresh_token: refreshToken
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Token refresh successful');
+        await chrome.storage.local.set({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          tokenTimestamp: Date.now()
+        });
+        return true;
+      } else {
+        console.error('Token refresh failed:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return false;
+    }
+  };
+
+  try {
+    // Get access token
+    let accessToken = await getAccessToken();
+
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    // Create FormData for upload
+    console.log("Creating FormData for upload");
+    const formData = new FormData();
+    formData.append("recording[file]", blob, "video.webm");
+    console.log("FormData created, starting authenticated upload to server");
+
+    // Make authenticated request
+    let response = await fetch("http://localhost:3001/chrome/upload", {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: formData,
+    });
+    console.log("Upload response status:", response.status);
+
+    // If unauthorized, try to refresh token
+    if (response.status === 401) {
+      console.log('Received 401, attempting token refresh...');
+      const refreshed = await refreshAccessToken();
+
+      if (refreshed) {
+        // Retry with new token
+        accessToken = await getAccessToken();
+        response = await fetch("http://localhost:3001/chrome/upload", {
+          method: "POST",
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          },
+          body: formData,
+        });
+        console.log("Retry upload response status:", response.status);
+      } else {
+        // Refresh failed, clear tokens
+        console.log('Token refresh failed, clearing tokens');
+        await chrome.storage.local.remove(['accessToken', 'refreshToken', 'tokenTimestamp', 'auth_token']);
+        throw new Error('Authentication required');
+      }
+    }
+
+    if (!response.ok) {
+      console.error(`HTTP error during upload! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    // Handle the response and create a new tab with the recording URL
+    console.log("Parsing response JSON");
+    const data = await response.json();
+    console.log("Response data:", data);
+
+    // Show notification to user
+    // chrome.notifications.create({
+    //   type: 'basic',
+    //   iconUrl: 'assets/icon-48.png',
+    //   title: 'Screenity - Upload Complete',
+    //   message: 'Your video has been uploaded to Screendesk successfully!'
+    // });
+
+    const url = "http://localhost:3001/recordings/" + data.recording_uuid;
+    console.log("Opening new tab with URL:", url);
+    chrome.tabs.create({ url: url });
+
+    console.log("Upload completed successfully");
+
+  } catch (error) {
+    console.error("Error uploading video:", error);
+
+    // Show error notification
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'assets/icon-48.png',
+      title: 'Screenity - Upload Failed',
+      message: 'Failed to upload video to Screendesk. Please try again.'
+    });
+
+    throw error;
+  }
+};
+
+const reconstructAndUploadVideo = async () => {
+  try {
+    // Step 1: Reconstruct raw video from chunks
+    const rawBlob = await reconstructVideoInBackground();
+
+    // Step 2: Fix duration metadata
+    const finalBlob = await fixVideoDurationInBackground(rawBlob);
+
+    // Step 3: Upload immediately
+    await uploadVideoBlob(finalBlob);
+  } catch (error) {
+    console.error("[BACKGROUND] Error in video reconstruction:", error);
+  }
+};
+
 const sendChunks = async (override = false) => {
   console.log("sendChunks started with override:", override);
   try {
@@ -540,7 +760,6 @@ const stopRecording = async () => {
   chrome.storage.local.set({ recordingStartTime: 0 });
   handleRecordingComplete();
 
-  sendChunks();
   chrome.action.setIcon({ path: "assets/icon-34.png" });
 
   // Rest of the existing code...
@@ -1370,6 +1589,8 @@ const videoReady = async () => {
     sendMessageTab(backupTab, { type: "close-writable" });
   }
   stopRecording();
+
+  await reconstructAndUploadVideo();
 };
 
 const newChunk = async (request) => {
