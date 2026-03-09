@@ -28,14 +28,14 @@ chrome.action.onClicked.addListener(async () => {
 When the `check-auth` message is received:
 - The ContentState component retrieves the `auth_token` from Chrome's local storage
 - If a token exists, it makes a request to the backend server to validate the token
-- The validation is done by sending a GET request to `http://localhost:3001/auth_status` with the token in the Authorization header
+- The validation is done by sending a GET request to `https://app.screendesk.io/auth_status` with the token in the Authorization header
 - **If token is valid**: The extension interface is immediately shown
 - **If token is invalid or missing**: The sign-in page is opened
 
 ```javascript
 chrome.storage.local.get(['auth_token'], function(result) {
   if (result.auth_token) {
-    fetch('http://localhost:3001/auth_status', {
+    fetch('https://app.screendesk.io/auth_status', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${result.auth_token}`,
@@ -71,14 +71,14 @@ chrome.storage.local.get(['auth_token'], function(result) {
 ### 3. Sign-In Process
 
 If the user is not authenticated or the token is invalid:
-- The extension opens a popup window to the sign-in page (`http://localhost:3001/users/sign_in?source=chrome_extension`)
+- The extension opens a popup window to the sign-in page (`https://app.screendesk.io/users/sign_in?source=chrome_extension`)
 - The popup window is created with specific dimensions (500x700)
 - The window ID is stored in `signInWindowId` for later reference
 - **Important**: The extension interface is NOT hidden immediately - it waits for authentication to complete
 
 ```javascript
 chrome.windows.create({
-  url: 'http://localhost:3001/users/sign_in?source=chrome_extension',
+  url: 'https://app.screendesk.io/users/sign_in?source=chrome_extension',
   type: 'popup',
   width: 500,
   height: 700,
@@ -149,7 +149,7 @@ const { auth_token } = await new Promise((resolve, reject) => {
 // Upload the fixed Blob to the server.
 const formData = new FormData();
 formData.append("recording[file]", fixedBlob, "video.webm");
-const response = await fetch("http://localhost:3001/chrome/upload", {
+const response = await fetch("https://app.screendesk.io/chrome/upload", {
   method: "POST",
   headers: {
     'Authorization': `Bearer ${auth_token}`,
