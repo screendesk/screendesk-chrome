@@ -1,7 +1,7 @@
-import { fabric } from "fabric";
+import { Line, Triangle, Circle, Group, Canvas } from "fabric";
 
 const createArrowLine = (x, y, color, toolSettings) => {
-  return new fabric.Line([x, y, x, y], {
+  return new Line([x, y, x, y], {
     strokeWidth: toolSettings.strokeWidth * 6,
     stroke: color,
     originX: "center",
@@ -13,7 +13,7 @@ const createArrowLine = (x, y, color, toolSettings) => {
 };
 
 const createArrowHead = (x, y, color, toolSettings) => {
-  return new fabric.Triangle({
+  return new Triangle({
     width: toolSettings.strokeWidth * 16,
     height: toolSettings.strokeWidth * 16,
     left: x,
@@ -28,7 +28,7 @@ const createArrowHead = (x, y, color, toolSettings) => {
 };
 
 const createArrowCircle = (x, y, id) => {
-  return new fabric.Circle({
+  return new Circle({
     radius: 5,
     fill: "white",
     stroke: "#0D99FF",
@@ -43,7 +43,7 @@ const createArrowCircle = (x, y, id) => {
 };
 
 const createArrowLineControl = (x, y) => {
-  return new fabric.Line([x, y, x, y], {
+  return new Line([x, y, x, y], {
     strokeWidth: 2,
     stroke: "#0D99FF",
     originX: "center",
@@ -89,7 +89,7 @@ const moveArrowCircle = (
   canvas.on("mouse:move", (o) => {
     if (!isDown) return;
 
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
     const { x, y } = pointer;
     arrowCircle.set({ left: x - 5, top: y - 5 });
     canvas.renderAll();
@@ -119,7 +119,7 @@ const moveArrowCircle = (
     isDown = false;
     canvas.off("mouse:move");
     arrowLineControl.set({ opacity: 1 });
-    const group = new fabric.Group(
+    const group = new Group(
       [arrowLine, arrowHead, arrowLineControl, arrowCircle1, arrowCircle2],
       {
         selectable: true,
@@ -172,7 +172,7 @@ const ArrowTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
     canvas.selection = false;
     canvas.renderAll();
 
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
     const x = pointer.x;
     const y = pointer.y;
 
@@ -203,7 +203,7 @@ const ArrowTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
     )
       return;
 
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
     const x = pointer.x;
     const y = pointer.y;
 
@@ -243,7 +243,7 @@ const ArrowTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
     arrowCircle2.set({ opacity: 1 });
     arrowLineControl.set({ opacity: 1 });
 
-    const group = new fabric.Group(
+    const group = new Group(
       [arrowLine, arrowHead, arrowLineControl, arrowCircle1, arrowCircle2],
       {
         selectable: true,
@@ -271,7 +271,7 @@ const ArrowTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
     canvas.renderAll();
   };
 
-  fabric.Canvas.prototype.getItem = function (id) {
+  Canvas.prototype.getItem = function (id) {
     let object = null;
     const objects = this.getObjects();
 

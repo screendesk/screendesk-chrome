@@ -1,5 +1,5 @@
 import React from "react";
-import { fabric } from "fabric";
+import { FabricObject, Textbox, Control, controlsUtils, util } from "fabric";
 
 import {
   HandleControl,
@@ -10,7 +10,7 @@ import {
 
 // Custom controls for the canvas, with rounded square handles and a circular rotate handle
 const CustomControls = (canvas) => {
-  fabric.Object.prototype.set({
+  FabricObject.prototype.set({
     transparentCorners: false,
     borderColor: "#0D99FF",
     cornerColor: "#FFF",
@@ -20,7 +20,7 @@ const CustomControls = (canvas) => {
     borderOpacityWhenMoving: 1,
   });
 
-  fabric.Textbox.prototype.set({
+  Textbox.prototype.set({
     transparentCorners: false,
     borderColor: "#0D99FF",
     cornerColor: "#FFF",
@@ -42,7 +42,7 @@ const CustomControls = (canvas) => {
     const size = 25;
     ctx.save();
     ctx.translate(left, top);
-    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+    ctx.rotate(util.degreesToRadians(fabricObject.angle));
     ctx.drawImage(img, -size / 2, -size / 2, size, size);
     ctx.restore();
   }
@@ -56,7 +56,7 @@ const CustomControls = (canvas) => {
     const hsize = 30;
     ctx.save();
     ctx.translate(left, top);
-    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+    ctx.rotate(util.degreesToRadians(fabricObject.angle));
     ctx.drawImage(img2, -wsize / 2, -hsize / 2, wsize, hsize);
     ctx.restore();
   }
@@ -69,7 +69,7 @@ const CustomControls = (canvas) => {
     const size = 18;
     ctx.save();
     ctx.translate(left, top);
-    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+    ctx.rotate(util.degreesToRadians(fabricObject.angle));
     ctx.drawImage(img3, -(size + 14) / 2, -size / 2, size + 14, size);
     ctx.restore();
   }
@@ -82,96 +82,96 @@ const CustomControls = (canvas) => {
     const size = 18;
     ctx.save();
     ctx.translate(left, top);
-    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
+    ctx.rotate(util.degreesToRadians(fabricObject.angle));
     ctx.drawImage(img4, -size / 2, -(size + 14) / 2, size, size + 14);
     ctx.restore();
   }
 
-  fabric.Object.prototype.controls.tl = new fabric.Control({
+  FabricObject.prototype.controls.tl = new Control({
     x: -0.5,
     y: -0.5,
     offsetX: -1,
     offsetY: -1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Object.prototype.controls.tr = new fabric.Control({
+  FabricObject.prototype.controls.tr = new Control({
     x: 0.5,
     y: -0.5,
     offsetX: 1,
     offsetY: -1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Object.prototype.controls.bl = new fabric.Control({
+  FabricObject.prototype.controls.bl = new Control({
     x: -0.5,
     y: 0.5,
     offsetX: -1,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Object.prototype.controls.br = new fabric.Control({
+  FabricObject.prototype.controls.br = new Control({
     x: 0.5,
     y: 0.5,
     offsetX: 1,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Object.prototype.controls.mr = new fabric.Control({
+  FabricObject.prototype.controls.mr = new Control({
     x: 0.5,
     y: 0,
     offsetX: 1,
     offsetY: 0,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingXOrSkewingY,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingXOrSkewingY,
     render: renderIconMiddleV,
   });
 
-  fabric.Object.prototype.controls.ml = new fabric.Control({
+  FabricObject.prototype.controls.ml = new Control({
     x: -0.5,
     y: 0,
     offsetX: -1,
     offsetY: 0,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingXOrSkewingY,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingXOrSkewingY,
     render: renderIconMiddleV,
   });
 
-  fabric.Object.prototype.controls.mb = new fabric.Control({
+  FabricObject.prototype.controls.mb = new Control({
     x: 0,
     y: 0.5,
     offsetX: 0,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingYOrSkewingX,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingYOrSkewingX,
     render: renderIconMiddle,
   });
 
-  fabric.Object.prototype.controls.mt = new fabric.Control({
+  FabricObject.prototype.controls.mt = new Control({
     x: 0,
     y: -0.5,
     offsetX: 0,
     offsetY: -1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingYOrSkewingX,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingYOrSkewingX,
     render: renderIconMiddle,
   });
 
-  fabric.Object.prototype.controls.mtr = new fabric.Control({
+  FabricObject.prototype.controls.mtr = new Control({
     x: 0,
     y: 0.5,
-    cursorStyleHandler: fabric.controlsUtils.rotationStyleHandler,
-    actionHandler: fabric.controlsUtils.rotationWithSnapping,
+    cursorStyleHandler: controlsUtils.rotationStyleHandler,
+    actionHandler: controlsUtils.rotationWithSnapping,
     offsetY: 26,
     withConnecton: false,
     actionName: "rotate",
@@ -179,94 +179,94 @@ const CustomControls = (canvas) => {
   });
 
   // Also use same controls for Textbox
-  fabric.Textbox.prototype.controls.tl = new fabric.Control({
+  Textbox.prototype.controls.tl = new Control({
     x: -0.5,
     y: -0.5,
     offsetX: -1,
     offsetY: -1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Textbox.prototype.controls.tr = new fabric.Control({
+  Textbox.prototype.controls.tr = new Control({
     x: 0.5,
     y: -0.5,
     offsetX: 1,
     offsetY: -1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Textbox.prototype.controls.bl = new fabric.Control({
+  Textbox.prototype.controls.bl = new Control({
     x: -0.5,
     y: 0.5,
     offsetX: -1,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
-  fabric.Textbox.prototype.controls.br = new fabric.Control({
+  Textbox.prototype.controls.br = new Control({
     x: 0.5,
     y: 0.5,
     offsetX: 1,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.scalingEqually,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.scalingEqually,
     render: renderIcon,
   });
 
   // Ml and mr controls for Textbox. The actionhandler should be for resizing the textbox horizontally, not skewing it
-  fabric.Textbox.prototype.controls.ml = new fabric.Control({
+  Textbox.prototype.controls.ml = new Control({
     x: -0.5,
     y: 0,
     offsetX: -1,
     offsetY: 0,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.changeWidth,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.changeWidth,
     render: renderIconMiddleV,
   });
 
-  fabric.Textbox.prototype.controls.mr = new fabric.Control({
+  Textbox.prototype.controls.mr = new Control({
     x: 0.5,
     y: 0,
     offsetX: 1,
     offsetY: 0,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.changeWidth,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.changeWidth,
     render: renderIconMiddleV,
   });
 
-  fabric.Textbox.prototype.controls.mb = new fabric.Control({
+  Textbox.prototype.controls.mb = new Control({
     x: 0,
     y: 0.5,
     offsetX: 0,
     visible: false,
     offsetY: 1,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.changeHeight,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.changeHeight,
     render: renderIconMiddle,
   });
 
-  fabric.Textbox.prototype.controls.mt = new fabric.Control({
+  Textbox.prototype.controls.mt = new Control({
     x: 0,
     y: -0.5,
     offsetX: 0,
     offsetY: -1,
     visible: false,
-    cursorStyleHandler: fabric.controlsUtils.scaleCursorStyleHandler,
-    actionHandler: fabric.controlsUtils.changeHeight,
+    cursorStyleHandler: controlsUtils.scaleCursorStyleHandler,
+    actionHandler: controlsUtils.changeHeight,
     render: renderIconMiddle,
   });
 
-  fabric.Textbox.prototype.controls.mtr = new fabric.Control({
+  Textbox.prototype.controls.mtr = new Control({
     x: 0,
     y: 0.5,
-    cursorStyleHandler: fabric.controlsUtils.rotationStyleHandler,
-    actionHandler: fabric.controlsUtils.rotationWithSnapping,
+    cursorStyleHandler: controlsUtils.rotationStyleHandler,
+    actionHandler: controlsUtils.rotationWithSnapping,
     offsetY: 26,
     withConnecton: false,
     actionName: "rotate",

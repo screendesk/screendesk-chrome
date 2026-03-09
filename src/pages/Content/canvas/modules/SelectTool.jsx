@@ -1,5 +1,3 @@
-import { fabric } from "fabric";
-
 const SelectTool = (canvas, toolSettings, setToolSettings) => {
   if (toolSettings.tool === "select") {
     // Check if there's any objects on the canvas

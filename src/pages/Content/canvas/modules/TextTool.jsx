@@ -1,15 +1,15 @@
-import { fabric } from "fabric";
+import { Textbox } from "fabric";
 
 const TextTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   // Add interactive text on click, start editing
   const onMouseDown = (o) => {
     if (toolSettings.tool !== "text") return;
 
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
     const x = pointer.x;
     const y = pointer.y;
 
-    const text = new fabric.Textbox("", {
+    const text = new Textbox("", {
       left: x,
       top: y,
       fontFamily: "Satoshi-Medium",
@@ -150,7 +150,7 @@ const TextTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   document.addEventListener("keydown", onKeyPress);
   canvas.on("object:resizing", onResize);
   canvas.on("mouse:move", function (event) {
-    var pointer = canvas.getPointer(event.e);
+    var pointer = canvas.getScenePoint(event.e);
     var isHoveringTextbox = false;
 
     canvas.forEachObject(function (obj) {

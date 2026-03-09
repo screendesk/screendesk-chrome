@@ -1,6 +1,6 @@
 import React from "react";
 
-import { fabric } from "fabric";
+import { Rect, Triangle, Circle } from "fabric";
 
 const ShapeTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   const tool = toolSettings;
@@ -12,11 +12,11 @@ const ShapeTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   const onMouseDown = (o) => {
     if (tool.tool !== "shape") return;
     isDown = true;
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
     origX = pointer.x;
     origY = pointer.y;
     if (tool.shape === "rectangle") {
-      shape = new fabric.Rect({
+      shape = new Rect({
         left: origX,
         top: origY,
         originX: "left",
@@ -31,7 +31,7 @@ const ShapeTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
         strokeWidth: toolSettings.strokeWidth * 6,
       });
     } else if (tool.shape === "triangle") {
-      shape = new fabric.Triangle({
+      shape = new Triangle({
         left: origX,
         top: origY,
         originX: "left",
@@ -48,7 +48,7 @@ const ShapeTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
         strokeWidth: toolSettings.strokeWidth * 6,
       });
     } else if (tool.shape === "circle") {
-      shape = new fabric.Circle({
+      shape = new Circle({
         left: origX,
         top: origY,
         originX: "left",
@@ -68,7 +68,7 @@ const ShapeTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   const onMouseMove = (o) => {
     if (tool.tool !== "shape") return;
     if (!isDown) return;
-    const pointer = canvas.getPointer(o.e);
+    const pointer = canvas.getScenePoint(o.e);
 
     if (origX > pointer.x) {
       shape.set({ left: Math.abs(pointer.x) });

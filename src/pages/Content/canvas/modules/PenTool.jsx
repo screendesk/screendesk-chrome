@@ -1,4 +1,4 @@
-import { fabric } from "fabric";
+import { Color, Path, Group } from "fabric";
 
 const PenTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   if (toolSettings.tool === "pen") {
@@ -13,7 +13,7 @@ const PenTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
     canvas.freeDrawingBrush.straightLineKey = "none";
     canvas.freeDrawingBrush.width = toolSettings.strokeWidth * 10;
     // Make the highlighter transparent
-    canvas.freeDrawingBrush.color = new fabric.Color(toolSettings.color)
+    canvas.freeDrawingBrush.color = new Color(toolSettings.color)
       .setAlpha(0.5)
       .toRgba();
     // Make the highlighter not draw on top of existing objects
@@ -33,14 +33,14 @@ const PenTool = (canvas, toolSettings, setToolSettings, saveCanvas) => {
   const onPathCreated = (o) => {
     // Make a copy of the path with a thin blue stroke. Then group the two paths together
     const path = o.path;
-    const pathCopy = new fabric.Path(path.path, {
+    const pathCopy = new Path(path.path, {
       id: "select-stroke",
       stroke: "#0D99FF",
       strokeWidth: 2,
       fill: null,
       opacity: 0,
     });
-    const group = new fabric.Group([path, pathCopy], {
+    const group = new Group([path, pathCopy], {
       // Make the group selectable
       selectable: true,
       id: "select-group",

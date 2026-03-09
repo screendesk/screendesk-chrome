@@ -1,7 +1,5 @@
-import { fabric } from "fabric";
-
 // Undo and redo functionality for Fabric.js
-const undoCanvas = (toolSettings, setToolSettings) => {
+const undoCanvas = async (toolSettings, setToolSettings) => {
   if (!toolSettings.canvas) return;
   const canvas = toolSettings.canvas;
   if (toolSettings.undoStack.length > 0) {
@@ -13,11 +11,10 @@ const undoCanvas = (toolSettings, setToolSettings) => {
     const penultimateItem = undoStack[undoStack.length - 1];
     canvas.clear();
     canvas.renderAll();
-    canvas.loadFromJSON(penultimateItem, () => {
-      // De-select everything
-      canvas.discardActiveObject();
-      canvas.renderAll();
-    });
+    await canvas.loadFromJSON(penultimateItem);
+    // De-select everything
+    canvas.discardActiveObject();
+    canvas.renderAll();
     setToolSettings({
       ...toolSettings,
       undoStack,
@@ -26,7 +23,7 @@ const undoCanvas = (toolSettings, setToolSettings) => {
   }
 };
 
-const redoCanvas = (toolSettings, setToolSettings) => {
+const redoCanvas = async (toolSettings, setToolSettings) => {
   if (!toolSettings.canvas) return;
   const canvas = toolSettings.canvas;
   if (toolSettings.redoStack.length > 0) {
@@ -34,11 +31,10 @@ const redoCanvas = (toolSettings, setToolSettings) => {
     const redoStack = [...toolSettings.redoStack];
     const lastItem = redoStack.pop();
     undoStack.push(lastItem);
-    canvas.loadFromJSON(lastItem, () => {
-      // De-select everything
-      canvas.discardActiveObject();
-      canvas.renderAll();
-    });
+    await canvas.loadFromJSON(lastItem);
+    // De-select everything
+    canvas.discardActiveObject();
+    canvas.renderAll();
     setToolSettings({
       ...toolSettings,
       undoStack,
