@@ -1,0 +1,107 @@
+name: Security Scans
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  codeql-cli:
+    name: CodeQL CLI SARIF
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install CodeQL CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          CODEQL_VERSION="$(curl -fsSL https://api.github.com/repos/github/codeql-cli-binaries/releases/latest | jq -r '.tag_name')"
+          curl -fsSL -o "$RUNNER_TEMP/codeql.zip" \
+            "https://github.com/github/codeql-cli-binaries/releases/download/${CODEQL_VERSION}/codeql-linux64.zip"
+          unzip -q "$RUNNER_TEMP/codeql.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/codeql" >> "$GITHUB_PATH"
+
+      - name: Create CodeQL database for JavaScript and TypeScript
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          codeql database create "$RUNNER_TEMP/codeql-db" \
+            --language=javascript-typescript \
+            --source-root="$GITHUB_WORKSPACE" \
+            --threads=0 \
+            --overwrite
+
+      - name: Analyze with CodeQL CLI and write SARIF
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p security-results
+          QUERY_SUITE="$RUNNER_TEMP/codeql/javascript/ql/src/codeql-suites/javascript-security-and-quality.qls"
+          codeql database analyze "$RUNNER_TEMP/codeql-db" \
+            "$QUERY_SUITE" \
+            --format=sarif-latest \
+            --output=security-results/codeql-results.sarif \
+            --sarif-category=javascript-typescript \
+            --threads=0
+
+      - name: Upload CodeQL SARIF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-sarif
+          path: security-results/codeql-results.sarif
+          if-no-files-found: warn
+
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Gitleaks
+        shell: bash
+        run: |
+          set -euo pipefail
+          GITLEAKS_VERSION="$(curl -fsSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r '.tag_name | ltrimstr("v")')"
+          curl -fsSL -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Run Gitleaks with redacted SARIF report
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p security-results
+          gitleaks detect \
+            --source . \
+            --redact \
+            --report-format sarif \
+            --report-path security-results/gitleaks-report.sarif \
+            --exit-code 1
+
+      - name: Upload Gitleaks report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: security-results/gitleaks-report.sarif
+          if-no-files-found: warn
